@@ -1,0 +1,80 @@
+# radar-infra/docker-compose.e2e.yml
+
+services:
+  # --- Database Service ---
+  db:
+    image: postgres:17-alpine                 # https://github.com/docker-library/docs/blob/master/postgres/README.md
+    container_name: radar-e2e-postgres
+    restart: unless-stopped
+    env_file:
+      - envs/.env.e2e                         # Unversioned file .env with secure credentials, its path is relative to this docker-compose.yml
+    ports:
+      - "${POSTGRES_EXTERNAL_PORT:-5432}:5432"  # Syntax: ${ENV_VAR_FOR_HOST_PORT:-DEFAULT_VALUE} : CONTAINER_PORT
+    volumes:
+      # Mount initialization scripts (00, 01, ...) to initialize the database on the first run
+      - ./database/init:/docker-entrypoint-initdb.d
+      # Bind mounts (https://docs.docker.com/engine/storage/bind-mounts/)
+      # 1. When you use a "bind mount", a file or dir on the host machine is mounted directly from the host into a container. In general, this is preferred.
+      - ./database/docker_volume:/var/lib/postgresql/data
+      # 2. By contrast, when you use (Named) Volumes, they are persistent data stores created and managed by Docker.
+      # - radar_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      # Wait until the database is ready to accept commands before declaring it healthy.
+      # $$ Prevents Docker tries to expand the variable before sending it to the container
+      # -h 127.0.0.1 forces TCP connection to bypass the temporary init server (which uses Unix sockets)
+      test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s                           # Time between health checks
+      timeout: 5s                             # Timeout for each health check
+      retries: 18                             # Nº of retries before considering the container unhealthy
+      start_period: 180s                      # Initial delay before starting health checks
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # --- Financial Analysis Core (One-off process) ---
+  core:
+    build:
+      context: ../radar-core
+      dockerfile: docker/Dockerfile
+    container_name: radar-e2e-core
+    restart: 'no'                             # It will either run manually or remain paused after execution
+    shm_size: '2gb'                           # CRITICAL for HPC/Polars: Increase shared memory size
+    depends_on:
+      db:                                     # The 'core' service will not start until the 'db' service is healthy.
+        condition: service_healthy
+    env_file:
+      - envs/.env.e2e                         # Unversioned file .envs with secure credentials, its path is relative to this docker-compose.yml
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB_NAME}        # Rename the DB to match the name expected by the application, env var injected through `docker compose` command
+
+  # --- Business Intelligence ---
+  metabase:
+    image: metabase/metabase:latest
+    container_name: radar-e2e-metabase
+    restart: unless-stopped
+    env_file:
+      - envs/.env.e2e                         # Unversioned file .envs with secure credentials, its path is relative to this docker-compose.yml
+    environment:
+      MB_DB_USER: ${POSTGRES_USER}            # Rename the user to match the name expected by the application, env var injected through `docker compose` command
+      MB_DB_PASS: ${POSTGRES_PASSWORD}        # Rename the password to match the name expected by the application, env var injected through `docker compose` command
+    ports:
+      - "${METABASE_UI_PORT:-3000}:3000"      # Syntax: ${ENV_VAR_FOR_HOST_PORT:-DEFAULT_VALUE} : CONTAINER_PORT
+    depends_on:
+      db:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+# Network configuration for service communication
+networks:
+  default:
+    name: radar-e2e-network                   # Network name
+    driver: bridge                            # Standard bridge network for local deployment
+
+# Volume definition: required if you use a bind mount with a (named) volume (see db service above)
+#volumes:
+#  radar_pg_data:                              # Logical volume name (used inside services)
+#    driver: local                             # Stores data on host (others: nfs, azurefile, sshfs, etc.)
+#    driver_opts:                              # Extra options
+#      type: none                              # No special filesystem type, use the host’s native one (others: `bind` for Linux)
+#      o: bind                                 # Mount as a bind (link a real host folder)
+#      device: ./database/docker_volume        # Path on your host where data will be stored

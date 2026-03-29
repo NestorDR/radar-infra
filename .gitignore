@@ -1,0 +1,25 @@
+# IDEs
+.aiassistant/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# project
+zero/
+*.rar
+*.tar
+*.zip
+*.7z
+
+# project volumes
+docker_volume/
+
+#.envs files
+.env
+.env.*
+!.env.*.template
+
+# Logs
+logs/
+*.log
