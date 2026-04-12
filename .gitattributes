@@ -1,0 +1,12 @@
+# .gitattributes
+
+# Set default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Declare files that will always have LF line endings on checkout.
+.env* text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.sql text eol=lf
+*.yml text eol=lf
+Dockerfile* text eol=lf
