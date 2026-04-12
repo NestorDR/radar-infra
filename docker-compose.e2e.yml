@@ -1,4 +1,4 @@
-# radar-infra/docker-compose.e2e.yml
+# docker-compose.e2e.yml
 
 services:
   # --- Database Service ---
