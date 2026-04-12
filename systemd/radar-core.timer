@@ -1,0 +1,26 @@
+# radar-infra/systemd/radar-core.timer
+# PURPOSE: Scheduling of Radar-Core runs using New York time.
+# REASONING: Systemd natively handles timezone shifts (DST) and ensures 
+# that jobs do not overlap if the previous one is still running.
+
+[Unit]
+Description=Timer for Radar Core (Mon-Fri, NY Time)
+
+[Timer]
+# NY Stock Market Hours (Eastern Time)
+# systemd handles 'America/New_York' natively including daylight saving.
+OnCalendar=Mon..Fri *-*-* 10:30:00 America/New_York
+OnCalendar=Mon..Fri *-*-* 13:00:00 America/New_York
+OnCalendar=Mon..Fri *-*-* 15:30:00 America/New_York
+OnCalendar=Mon..Fri *-*-* 16:15:00 America/New_York
+
+# PERSISTENCE: If the VM was down during a scheduled window, 
+# it will trigger the job immediately upon reboot.
+Persistent=true
+
+# OVERLAP PREVENTION: Built-in. If the service is still active 
+# from the 10:30 run, the 13:00 trigger will wait or skip based on type.
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

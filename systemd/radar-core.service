@@ -1,0 +1,26 @@
+# radar-infra/systemd/radar-core.service
+# PURPOSE: Define the 'radar-core' execution as a system-level unit.
+# REASONING: Allows the OS to track the process, capture logs, and enforce timeouts.
+
+[Unit]
+Description=Radar Core Financial Processing Job
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=radar-admin
+WorkingDirectory=/opt/radar/infra
+# Executes the wrapper script
+ExecStart=/opt/radar/infra/scripts/run-radar-core.sh
+
+# TIMEOUT PROTECTION: Prevents the job from hanging indefinitely 
+# (e.g., network deadlocks or infinite loops in JIT code).
+TimeoutStartSec=7200 
+
+# NO AUTO-RESTART: In financial data, we prefer manual inspection 
+# on failure rather than unintended partial data writes.
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
