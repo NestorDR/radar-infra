@@ -1,0 +1,51 @@
+# docker-compose.prod.yml
+
+# Manage persistent 24/7 services (PostgreSQL & Metabase)
+# Decoupled from the radar-core process to ensure data availability and visualization are independent of the calculation jobs.
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: radar-postgres
+    restart: always
+    env_file: envs/.env.prod
+    volumes:
+      # Use relative paths from radar-infra root
+      - ./database/init:/docker-entrypoint-initdb.d
+      - ./database/prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2G # Reserved for DB and OS cache
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: radar-metabase
+    restart: always
+    env_file: envs/.env.prod
+    environment:
+      MB_DB_USER: ${POSTGRES_USER}            # Rename the user to match the name expected by the application, env var injected through `docker compose` command
+      MB_DB_PASS: ${POSTGRES_PASSWORD}        # Rename the password to match the name expected by the application, env var injected through `docker compose` command
+      # Java memory limit/tuning for performance & stability (HPC Optimization)
+      JAVA_OPTS: "-Xmx2g -Xms2g"              # Strict JVM memory allocation (Xmx = max heap/memory size, Xms = start heap/memory size)
+    ports:
+      # Consider using a reverse proxy (Caddy/Nginx) for SSL later
+      - "${METABASE_UI_PORT:-3000}:3000"      # Syntax: ${ENV_VAR_FOR_HOST_PORT:-DEFAULT_VALUE} : CONTAINER_PORT
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2560M
+
+# Network configuration for service communication
+networks:
+  default:
+    name: radar-network                       # Network name
+    driver: bridge                            # Standard bridge network for local deployment

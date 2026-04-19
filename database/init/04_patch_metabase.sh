@@ -1,5 +1,5 @@
 #!/bin/bash
-# auto/database/init/04_patch_metabase.sh
+# database/init/04_patch_metabase.sh
 
 # Exit immediately if a command exits with a non-zero status
 set -e
