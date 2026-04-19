@@ -45,9 +45,11 @@ The repository is structured to separate code and configuration from ephemeral o
 The infrastructure currently relies on Docker to orchestrate databases (PostgreSQL) and analytics tools (Metabase). 
 
 ### Upcoming: Production Deployment Scheduling
-As documented in `docs/adr/production_deployment_scheduling.md`, the next major milestone is deploying `radar-core` in production on a Hetzner VM (Linux host). 
+As documented in [ADR-001.production_deployment_scheduling.md](docs/adr/ADR-001.production_deployment_scheduling.md), the next major milestone is deploying `radar-core` in production on a VM infrastructure on a cloud provider. 
 
 The chosen approach is to use **`systemd timer + service`** to schedule containerized, one-shot executions of `radar-core`. This architecture was selected over alternatives as explained in the ADR (Architecture Decision Record).
+
+As documented in [ADR-002.production_deployment_on_x86_&_debian.md](docs/adr/ADR-002.production_deployment_on_x86_%26_debian.md) the first production version will run on an **x86_64** VM with **Debian 12 (Bookworm)** as the host operating system. 
 
 ## Automation Scripts
 The `auto/` directory contains Windows Command scripts to simplify common operational tasks:
@@ -55,7 +57,7 @@ The `auto/` directory contains Windows Command scripts to simplify common operat
 - **`auto\dump_mb_db.cmd`**: Utility to easily back up or extract the Metabase application database.
 
 ## Project Status
-In active development. Currently finalizing the production deployment model using `systemd` timers for the Hetzner VM infrastructure.
+In active development. Currently finalizing the production deployment model using `x86_x64 VM`, `Debian 12`, and`systemd` timers for the Hetzner VM infrastructure.
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file if available; otherwise, you may consider the standard MIT terms applicable by default.

@@ -1,4 +1,4 @@
--- radar-infra/database/init/02_radar_views.sql
+-- database/init/02_radar_views.sql
 
 -- Connect to the database defined in the environment or created by previous scripts
 \connect radar

@@ -1,4 +1,4 @@
--- radar-infra/database/init/01_radar_schema.sql
+-- database/init/01_radar_schema.sql
 
 -- PostgreSQL 17.x compatible schema for `radar` database
 
