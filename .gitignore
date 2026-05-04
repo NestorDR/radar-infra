@@ -5,6 +5,7 @@
 *.swo
 
 # project
+notes/
 zero/
 *.rar
 *.tar

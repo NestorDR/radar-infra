@@ -5,19 +5,25 @@
 
 services:
   db:
-    image: postgres:17-alpine
+    image: postgres:17-alpine                  # https://github.com/docker-library/docs/blob/master/postgres/README.md
     container_name: radar-postgres
     restart: always
-    env_file: envs/.env.prod
+    env_file:
+      - envs/.env.prod                         # Unversioned file .env with secure credentials, its path is relative to this docker-compose.yml
     volumes:
-      # Use relative paths from radar-infra root
+      # Mount initialization scripts (00, 01, ...) to initialize the database on the first run
       - ./database/init:/docker-entrypoint-initdb.d
-      - ./database/prod_data:/var/lib/postgresql/data
+      # When you use a "bind mount", a file or dir on the host machine is mounted directly from the host into a container. In general, this is preferred.
+      - ./database/data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      # Wait until the database is ready to accept commands before declaring it healthy.
+      # $$ Prevents Docker tries to expand the variable before sending it to the container
+      # -h 127.0.0.1 forces TCP connection to bypass the temporary init server (which uses Unix sockets)
+      test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s                           # Time between health checks
+      timeout: 5s                             # Timeout for each health check
+      retries: 18                             # Nº of retries before considering the container unhealthy
+      start_period: 180s                      # Initial delay before starting health checks
     deploy:
       resources:
         limits:
@@ -27,14 +33,15 @@ services:
     image: metabase/metabase:latest
     container_name: radar-metabase
     restart: always
-    env_file: envs/.env.prod
+    env_file:
+      - envs/.env.prod                        # Unversioned file .envs with secure credentials, its path is relative to this docker-compose.yml
     environment:
       MB_DB_USER: ${POSTGRES_USER}            # Rename the user to match the name expected by the application, env var injected through `docker compose` command
       MB_DB_PASS: ${POSTGRES_PASSWORD}        # Rename the password to match the name expected by the application, env var injected through `docker compose` command
       # Java memory limit/tuning for performance & stability (HPC Optimization)
       JAVA_OPTS: "-Xmx2g -Xms2g"              # Strict JVM memory allocation (Xmx = max heap/memory size, Xms = start heap/memory size)
     ports:
-      # Consider using a reverse proxy (Caddy/Nginx) for SSL later
+      # Use a reverse proxy (Caddy/Nginx) for SSL later
       - "${METABASE_UI_PORT:-3000}:3000"      # Syntax: ${ENV_VAR_FOR_HOST_PORT:-DEFAULT_VALUE} : CONTAINER_PORT
     depends_on:
       db:
