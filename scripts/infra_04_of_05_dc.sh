@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# scripts/deploy-infra.sh
+# scripts/infra_04_of_05_dc.sh
 # Purpose: Orchestrate the deployment of persistent services (PostgreSQL & Metabase)
 
 # Configuration

@@ -7,12 +7,13 @@ This document outlines the incremental deployment strategy for the Radar project
 **Objective:** Verify that the database persists data correctly, `radar-core` executes as scheduled by `systemd`, and Metabase successfully reads and visualizes the data without public exposure.
 
 **Technical Actions:**
-1. **Provisioning:** Rent a VM on Hetzner Cloud (CX33 instance, Debian 13).
+1. **Provisioning:** Create a VM on Hetzner Cloud (CX33 instance, Debian 13).
 2. **Hardening:** Configure the firewall (UFW) to allow **ONLY port 22 (TCP/SSH)**.
-3. **Initial Deployment:** Deploy the current `docker-compose.prod.yml` (which exposes Metabase strictly on `127.0.0.1:3000:3000`).
-4. **Scheduling:** Install the `systemd` `.service` and `.timer` files, enable the timer, and validate execution logs via `journalctl`.
-5. **Secure Access:** Access the Metabase UI by establishing an **SSH Tunnel** from the local machine (`ssh -L 3000:localhost:3000 radar-admin@HETZNER_IP`).
-6. **Monitoring:** Configure dashboards and let the system run to establish a baseline for container stability and RAM usage patterns.
+3. **Docker:** Install it and prepare the directory structure.
+4. **Deployment:** Upload files (`docker-compose.prod.yml` and relates) and deploy.
+5. **Scheduling:** Set up the `systemd` (`.service` and `.timer` files) enable the timer, and validate execution logs via `journalctl`.
+6**Secure Access:** Access the PostgreSQL and Metabase by establishing an **SSH Tunnel** from the local machine.
+7**Monitoring:** Set up the correct PostgreSQL connection in Metabase.
 
 ## Stage 2: Secure Exposure (Network/Frontend Layer)
 **Objective:** Introduce a Reverse Proxy (Caddy) and TLS encryption, enabling secure public web access without affecting the internal database state or existing dashboards.

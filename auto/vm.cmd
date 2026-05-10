@@ -1,4 +1,5 @@
-:: auto/connect.cmd
+:: auto/vm.cmd
+:: Purpose: Connect to the VM via SSH with radar-admin user
 
 :: $Home replaces %USERPROFILE% in PowerShell
 

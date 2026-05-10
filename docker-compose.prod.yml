@@ -10,6 +10,8 @@ services:
     restart: always
     env_file:
       - envs/.env.prod                         # Unversioned file .env with secure credentials, its path is relative to this docker-compose.yml
+    ports:
+      - "127.0.0.1:5432:5432"                  # Map the port only locally on the VM (not exposed to the host), the internal service only listens on the loopback
     volumes:
       # Mount initialization scripts (00, 01, ...) to initialize the database on the first run
       - ./database/init:/docker-entrypoint-initdb.d
@@ -42,7 +44,7 @@ services:
       JAVA_OPTS: "-Xmx2g -Xms2g"              # Strict JVM memory allocation (Xmx = max heap/memory size, Xms = start heap/memory size)
     ports:
       # Use a reverse proxy (Caddy/Nginx) for SSL later
-      - "${METABASE_UI_PORT:-3000}:3000"      # Syntax: ${ENV_VAR_FOR_HOST_PORT:-DEFAULT_VALUE} : CONTAINER_PORT
+      - "127.0.0.1:3000:3000"                 # Syntax: ${ENV_VAR_FOR_HOST_PORT:-DEFAULT_VALUE}:CONTAINER_PORT
     depends_on:
       db:
         condition: service_healthy

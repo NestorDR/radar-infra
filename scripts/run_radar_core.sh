@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# scripts/run-radar-core.sh
+# scripts/run_radar_core.sh
 # Lifecycle management of the ephemeral radar-core container.
 # Ensures clean environment, shared memory allocation, and logging.
 
@@ -28,6 +28,7 @@ docker rm -f $CONTAINER_NAME 2>/dev/null || true
 docker run --rm \
     --name $CONTAINER_NAME \
     --network $NETWORK \
+    --env POSTGRES_DB=radar \
     --env-file "$ENV_FILE" \
     --shm-size 2gb \
     --log-driver=journald \

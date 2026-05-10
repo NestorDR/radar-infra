@@ -14,7 +14,7 @@ Type=oneshot
 User=radar-admin
 WorkingDirectory=/opt/radar/infra
 # Executes the wrapper script
-ExecStart=/opt/radar/infra/scripts/run-radar-core.sh
+ExecStart=/opt/radar/infra/scripts/run_radar_core.sh
 
 # TIMEOUT PROTECTION: Prevents the job from hanging indefinitely (2 hours)
 # (e.g., network deadlocks or infinite loops in JIT code).

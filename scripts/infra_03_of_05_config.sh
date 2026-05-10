@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# scripts/apply-infra-config.sh
+# scripts/infra_03_of_05_config.sh
 # Purpose: Apply necessary permissions and configurations for the radar-core infrastructure.
-# RUN previously: sudo chmod +x /opt/radar/infra/scripts/apply-infra-config.sh
+# RUN previously: sudo chmod +x /opt/radar/infra/scripts/infra_03_of_05_config.sh
 
 echo "--- Starting the Infrastructure Configuration ---"
 
@@ -71,6 +71,8 @@ sudo systemctl daemon-reload
 sudo systemctl enable radar-core.timer
 # Start the timer immediately to schedule the radar-core service according to the defined schedule
 sudo systemctl start radar-core.timer
+# Add user to the systemd-journal group to read system logs (journalctl) without using sudo
+sudo usermod -aG systemd-journal radar-admin
 
 echo "--- Infrastructure Configuration Completed ---"
 # Verify permissions and ownership
@@ -90,3 +92,4 @@ echo ""
 # | grep radar: to filter the output to show only lines containing "radar" (if wanted to focus on the radar-core.timer)
 systemctl list-timers --all
 
+echo "Tip: To apply the 'systemd-journal' permission, exit the server ('Ctrl + D') and re-enter via SSH."
