@@ -5,8 +5,8 @@ Radar Infra is the infrastructure companion to the [Radar Core](https://github.c
 ## Features
 - **Database Provisioning**: Automated initialization scripts (`.sql` and `.sh`) for PostgreSQL, including schema creation, views, and Metabase restoration.
 - **Environment Management**: Templated environment variables for Development (`dev`), End-to-End testing (`e2e`), and Production (`prod`).
-- **Container Orchestration**: Docker Compose configurations tailored for different stages (`docker-compose.dev.yml`, `docker-compose.e2e.yml`).
-- **Automation Scripts**: Helper scripts (`auto/dc.cmd`, `auto/dump_mb_db.cmd`) to streamline Docker operations and database backups.
+- **Container Orchestration**: Docker Compose configurations tailored for different stages (`docker-compose.dev.yml`, `docker-compose.e2e.yml`, `docker-compose.prod.yml`).
+- **Automation Scripts**: Helper scripts (`auto/dc.cmd`, `auto/dump_mb_db.cmd`) to streamline Docker operations and database backups, along with Bash scripts for automated provisioning and deployment on Linux servers.
 - **Architectural Decision Records (ADRs)**: Documentation of key infrastructure decisions, such as deployment scheduling.
 
 ## Repository Structure & Version Control
@@ -18,6 +18,8 @@ The repository is structured to separate code and configuration from ephemeral o
 - `envs/`: Environment templates (`*.template`).
 - `docs/`: ADRs and infrastructure documentation.
 - `docker-compose.*.yml`: Environment-specific container definitions.
+- `scripts/`: Bash scripts (`.sh`) for automation on Linux servers (cleanup, configuration, execution, and validation).
+- `systemd/`: Service units and timers (`radar-core.service`, `radar-core.timer`) for orchestrating recurring executions.
 
 ## Prerequisites
 - Docker Engine & Docker Compose.
@@ -44,20 +46,30 @@ The repository is structured to separate code and configuration from ephemeral o
 ## Architecture & Next Steps
 The infrastructure currently relies on Docker to orchestrate databases (PostgreSQL) and analytics tools (Metabase). 
 
-### Upcoming: Production Deployment Scheduling
-As documented in [ADR-001.production_deployment_scheduling.md](docs/adr/ADR-001.production_deployment_scheduling.md), the next major milestone is deploying `radar-core` in production on a VM infrastructure on a cloud provider. 
+### Production Deployment Scheduling
+As documented in [ADR-001.production_deployment_scheduling.md](docs/adr/ADR-001.production_deployment_scheduling.md) and [ADR-002.production_deployment_on_x86_&_debian.md](docs/adr/ADR-002.production_deployment_on_x86_%26_debian.md), `radar-core` is deployed in production on an **x86_64** VM with **Debian 13 (Trixie)** hosted on Hetzner Cloud.
 
-The chosen approach is to use **`systemd timer + service`** to schedule containerized, one-shot executions of `radar-core`. This architecture was selected over alternatives as explained in the ADR (Architecture Decision Record).
+The chosen approach uses **`systemd timer + service`** to schedule containerized, one-shot executions of `radar-core`. This architecture was selected over alternatives as explained in the ADRs.
 
-As documented in [ADR-002.production_deployment_on_x86_&_debian.md](docs/adr/ADR-002.production_deployment_on_x86_%26_debian.md) the first production version will run on an **x86_64** VM with **Debian 13 (Trixie)** as the host operating system. 
+For a detailed step-by-step guide on deploying to Hetzner Cloud, see [Deployment_02_execution.md](docs/Deployment_02_execution.md).
 
 ## Automation Scripts
-The `auto/` directory contains Windows Command scripts to simplify common operational tasks:
+The repository contains scripts for both Windows and Linux to simplify common operational tasks and automate deployments:
+
+**Windows Command Scripts (`auto/`):**
 - **`auto\dc.cmd`**: Helper for Docker Compose. It streamlines commands by injecting the correct environment files and project names.
 - **`auto\dump_mb_db.cmd`**: Utility to easily back up or extract the Metabase application database.
+- **`auto\infra_02_of_05_deploy.cmd`**: Uses `scp` to transfer deployment files to the remote server.
+
+**Linux Automation Scripts (`scripts/`):**
+A suite of scripts automates the 5 phases of production deployment:
+- **`scripts/infra_01_of_05_cleanup.sh`**: Environment cleanup and reset.
+- **`scripts/infra_03_of_05_config.sh`**: Assigns permissions, applies security hardening, and configures `systemd`.
+- **`scripts/infra_04_of_05_dc.sh`**: Brings up persistent services (PostgreSQL and Metabase).
+- **`scripts/infra_05_of_05_validate.sh`**: Executes and validates the initial run of the `radar-core` engine.
 
 ## Project Status
-In active development. Currently finalizing the production deployment model using `x86_x64 VM`, `Debian 13`, and`systemd` timers for the Hetzner VM infrastructure.
+The production deployment model using `x86_64` VMs, `Debian 13`, and `systemd` timers on Hetzner Cloud infrastructure has been successfully established and documented. The infrastructure is fully operational for development, end-to-end testing, and production.
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file if available; otherwise, you may consider the standard MIT terms applicable by default.
