@@ -9,14 +9,13 @@ Description=Timer for Radar Core (Mon-Fri, NY Time)
 [Timer]
 # NY Stock Market Hours (Eastern Time)
 # systemd handles 'America/New_York' natively including daylight saving.
-OnCalendar=Mon..Fri *-*-* 10:30:00 America/New_York
-OnCalendar=Mon..Fri *-*-* 13:00:00 America/New_York
-OnCalendar=Mon..Fri *-*-* 15:30:00 America/New_York
+OnCalendar=Mon..Fri *-*-* 09..14:31:00 America/New_York
+OnCalendar=Mon..Fri *-*-* 15:45:00 America/New_York
 OnCalendar=Mon..Fri *-*-* 16:15:00 America/New_York
 
 # ---
 # Note: OVERLAP PREVENTION is built natively into systemd.
-# If the 10:30 run is still active at 13:00, systemd will automatically ignore the 13:00 trigger.
+# If the 09:31 run is still active at 10:31, systemd will automatically ignore the 10:31 trigger.
 # ---
 
 # PERSISTENCE: If the VM was down during a scheduled window, it will trigger the job immediately upon reboot.

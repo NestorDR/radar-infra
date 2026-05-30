@@ -431,6 +431,8 @@
    ```bash
    # journalctl: tool to view system logs managed by systemd
    # -u (unit): filters the logs by the service unit name
+   # radar-core.service: name of the service to monitor
+   # -f (follow): to keep showing new logs in real time
    journalctl -u radar-core.service -f
    ```
    This step can be run with the bash automation script [infra_05_of_05_validate.sh](../scripts/infra_05_of_05_validate.sh).

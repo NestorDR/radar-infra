@@ -13,6 +13,7 @@ docker exec -it radar-postgres psql -U postgres -d radar -c "\dt"
 systemctl list-timers --all | grep radar-core || echo "radar-core.timer is not active."
 
 # Force rotation of current log files (close them and create new ones)
+# journalctl: Query the systemd journal logs
 sudo journalctl --rotate
 
 # Delete all old logs leaving only the last second

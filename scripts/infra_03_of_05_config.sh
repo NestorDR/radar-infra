@@ -90,6 +90,9 @@ echo ""
 # list-timers: lists all active timers and their next trigger times
 # --all: includes inactive timers in the output, providing a comprehensive view of all timers regardless of their current state
 # | grep radar: to filter the output to show only lines containing "radar" (if wanted to focus on the radar-core.timer)
-systemctl list-timers --all
+systemctl list-timers --all | grep radar-core || echo "radar-core.timer is not active."
+
+# Check detailed status
+systemctl status radar-core.timer
 
 echo "Tip: To apply the 'systemd-journal' permission, exit the server ('Ctrl + D') and re-enter via SSH."

@@ -47,7 +47,7 @@ The repository is structured to separate code and configuration from ephemeral o
 The infrastructure currently relies on Docker to orchestrate databases (PostgreSQL) and analytics tools (Metabase). 
 
 ### Production Deployment Scheduling
-As documented in [ADR-001.production_deployment_scheduling.md](docs/adr/ADR-001.production_deployment_scheduling.md) and [ADR-002.production_deployment_on_x86_&_debian.md](docs/adr/ADR-002.production_deployment_on_x86_%26_debian.md), `radar-core` is deployed in production on an **x86_64** VM with **Debian 13 (Trixie)** hosted on Hetzner Cloud.
+As documented in the Architecture Decision Records [ADR-001.production_deployment_scheduling.md](docs/adr/ADR-001.production_deployment_scheduling.md) and [ADR-002.production_deployment_on_x86_&_debian.md](docs/adr/ADR-002.production_deployment_on_x86_%26_debian.md), `radar-core` is deployed in production on an **x86_64** VM with **Debian 13 (Trixie)** hosted on Hetzner Cloud.
 
 The chosen approach uses **`systemd timer + service`** to schedule containerized, one-shot executions of `radar-core`. This architecture was selected over alternatives as explained in the ADRs.
 
