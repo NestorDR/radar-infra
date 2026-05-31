@@ -37,7 +37,7 @@ The repository is structured to separate code and configuration from ephemeral o
 2. **Start the Infrastructure (Development)**:
    Use the provided automation script to spin up the infrastructure.
    ```shell
-   auto\dc.cmd
+   auto\dc.cmd dev
    ```
 
 3. **Database Initialization**:
@@ -53,12 +53,24 @@ The chosen approach uses **`systemd timer + service`** to schedule containerized
 
 For a detailed step-by-step guide on deploying to Hetzner Cloud, see [Deployment_02_execution.md](docs/Deployment_02_execution.md).
 
+### Observability & Logs
+In production, application logs are not collected via Docker's internal mechanisms. Instead, they are routed directly to the host's journaling system. To consult the ephemeral engine logs, use the following command:
+```shell
+sudo journalctl -u radar-core.service
+```
+
 ## Automation Scripts
 The repository contains scripts for both Windows and Linux to simplify common operational tasks and automate deployments:
 
 **Windows Command Scripts (`auto/`):**
-- **`auto\dc.cmd`**: Helper for Docker Compose. It streamlines commands by injecting the correct environment files and project names.
+- **`auto\dc.cmd <target>`**: Helper for Docker Compose.
+  - Usage: `auto\dc.cmd e2e`.
+  - It handles environment file injection and project naming.
+  
 - **`auto\dump_mb_db.cmd`**: Utility to easily back up or extract the Metabase application database.
+  - Usage: `auto\dump_mb_db.cmd [db_password]`.
+  - It generates a dump of the Metabase database and sanitizes sensitive data.
+  
 - **`auto\infra_02_of_05_deploy.cmd`**: Uses `scp` to transfer deployment files to the remote server.
 
 **Linux Automation Scripts (`scripts/`):**
@@ -67,6 +79,9 @@ A suite of scripts automates the 5 phases of production deployment:
 - **`scripts/infra_03_of_05_config.sh`**: Assigns permissions, applies security hardening, and configures `systemd`.
 - **`scripts/infra_04_of_05_dc.sh`**: Brings up persistent services (PostgreSQL and Metabase).
 - **`scripts/infra_05_of_05_validate.sh`**: Executes and validates the initial run of the `radar-core` engine.
+
+**Execution Wrapper:**
+- **`scripts/run_radar_core.sh`**: Critical wrapper around `docker run` for the ephemeral engine (managed by `systemd`). It injects necessary shared memory (`--shm-size 2gb`) for data processing tools like Numba/Polars and securely routes container logs directly to JournalD.
 
 ## Project Status
 The production deployment model using `x86_64` VMs, `Debian 13`, and `systemd` timers on Hetzner Cloud infrastructure has been successfully established and documented. The infrastructure is fully operational for development, end-to-end testing, and production.
