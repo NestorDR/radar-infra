@@ -23,3 +23,12 @@ docker_volume/
 # Logs
 logs/
 *.log
+
+# Terraform local cache and downloaded provider binaries (plugins)
+.terraform/
+# Terraform state files (live infrastructure metadata and secrets)
+*.tfstate
+*.tfstate.backup
+# Terraform variable files (passwords, API tokens, and IPs)
+*.tfvars
+!*.tfvars.template
