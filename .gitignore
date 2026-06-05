@@ -32,3 +32,6 @@ logs/
 # Terraform variable files (passwords, API tokens, and IPs)
 *.tfvars
 !*.tfvars.template
+# Terraform plan files (contain binary execution plan details)
+tfplan
+*plan
