@@ -4,11 +4,10 @@
 
 **Objective:** Verify that the database persists, that `radar-core` is correctly executed via `systemd` scheduling, and that Metabase can read the data.
 
-### Technical Actions
+### 1. Provisioning: Create a VM on Hetzner Cloud (CX33 instance, Debian 13)
 
-**1. Provisioning: Create a VM on Hetzner Cloud (CX33 instance, Debian 13)**
-
-**1.1.** Create an SSH security key on the local workstation (Windows/Mac/Linux) to allow passwordless access to the Hetzner VM. This is fundamental for the security and convenience of server administration.
+#### 1.1. SSH Security Key
+Create an SSH security key on the local workstation (Windows/Mac/Linux) to allow passwordless access to the Hetzner VM. This is fundamental for the security and convenience of server administration.
 
    - Standard command to generate SSH key pairs: `ssh-keygen`. In this case, it is recommended to use the Ed25519 algorithm for its security and performance.
    ```powershell
@@ -22,11 +21,13 @@
    Get-Content "$home\.ssh\radar_ed25519.pub" | Set-Clipboard
    ```
 
-**1.2.** Create an account on [Hetzner Cloud](https://accounts.hetzner.com/signUp).
+#### 1.2. Create a Hetzner Cloud account.
+Create an account on [Hetzner Cloud](https://accounts.hetzner.com/signUp).
 
    - user: <HETZNER_USERNAME>
 
-**1.3.** Provision a VM on Hetzner Cloud.
+#### 1.3. Create a new VPS (Virtual Private Server)
+Provisioning a VM on Hetzner Cloud.
 
    - Type CX33: VCPUs: 4 Intel/AMD, RAM: 8 GB, SSD: 80 GB, Transfer: 20 TB
    - Location: Helsinki, Finland.
@@ -38,7 +39,8 @@
    - Labels: env:prod
    - Name: radar-prod
 
-**1.4.** Initial connection as `root` on the VM.
+#### 1.4. Connect to the VPS 
+Initial connection as `root` on the VM.
 
    - Connect with the command:
    ```powershell
@@ -57,13 +59,15 @@
    Type `yes` to accept the connection and add the server's key to the Windows `known_hosts` file.
    If a password (*passphrase*) was used to create the key, it will be requested here.
 
-**1.5.** Create a `radar-admin` user to manage the server securely without using `root` directly. This is a good security practice to minimize risks in case of compromise.
+#### 1.5. Create the `radar-admin` user
+Create a `radar-admin` user to manage the server securely without using `root` directly. This is a good security practice to minimize risks in case of compromise.
    ```bash
    adduser radar-admin
    ```
-   It will ask for a password for this user and a few questions like Name, Phone, etc. Press `Enter` on all of them to leave them blank and finally press `Y` to confirm.
+It will ask for a password for this user and a few questions like Name, Phone, etc. Press `Enter` on all of them to leave them blank and finally press `Y` to confirm.
 
-**1.6.** Grant administrator permissions (sudo), the full command includes:
+#### 1.6. Grant administrator permissions
+Grant administrator permissions (sudo), the full command includes:
    ```bash
    # usermod (user modify): modifies an existing user
    # -a (append): add the user to the supplementary group(s) without removing them from other groups
@@ -71,7 +75,8 @@
    usermod -aG sudo radar-admin
    ```
 
-**1.7.** Transfer the SSH key to the new user, log in directly using the same Windows key:
+#### 1.7. Transfer the SSH key
+Transfer the SSH key to the new user, log in directly using the same Windows key:
    ```bash
    # Create the SSH keys directory for the new user
    # -p (parents): creates the directory and any necessary parent directories
@@ -94,16 +99,19 @@
    chmod 600 /home/radar-admin/.ssh/authorized_keys
    ```
 
-**1.8.** Log out: `Ctrl + D`
+#### 1.8. Log out
+Log out with: `Ctrl + D`
 
-**1.9.** Connect as `radar-admin` on the VM.
+#### 1.9. Connect as `radar-admin`
+Connect as `radar-admin` on the VM.
    ```powershell
    ssh -i "C:\Users\<LOCAL_USER>\.ssh\radar_ed25519" radar-admin@<SERVER_IP> 
    ```
 
-**2. Hardening: Configure the firewall (UFW) to allow ONLY port 22 (TCP/SSH)**.
+### 2. Hardening: Configure the firewall (UFW) to allow ONLY port 22 (TCP/SSH)
 
-**2.1.** Verify the contents of the `/etc/ssh/sshd_config` file (main configuration of the SSH service) looking for `PermitRootLogin` and `PasswordAuthentication` directives that control direct access to the root user and the ability to authenticate using passwords, which is a security risk if left enabled.
+#### 2.1. Check the SSH configuration 
+Verify the contents of the `/etc/ssh/sshd_config` file (main configuration of the SSH service) looking for `PermitRootLogin` and `PasswordAuthentication` directives that control direct access to the root user and the ability to authenticate using passwords, which is a security risk if left enabled.
    ```bash
    # grep (Global Regular Expression Print): search for lines that match a pattern within files or command outputs
    # -i (case-insensitive): ignores uppercase/lowercase
@@ -112,7 +120,8 @@
    grep -iE "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config
    ```
    
-**2.2.** Harden. Disable root access via SSH and disable password authentication.
+#### 2.2. Hardening
+Disable root access via SSH and disable password authentication.
    ```bash
    # sed (Stream EDitor): edit text in a file from the command line
    # -i (In-place): modifies the file directly
@@ -142,7 +151,8 @@
    sudo systemctl restart ssh
    ```
 
-**2.3.** Configure Firewall to allow only port 22 (SSH)
+#### 2.3. Firewall configuration
+Configure Firewall to allow only port 22 (SSH)
    ```bash
    # apt (Advanced Packaging Tool): package management tool and derivatives
    # update: updates the list of available packages
@@ -172,11 +182,12 @@
    # ufw status: shows the current firewall status and configured rules
    sudo ufw status
    ```
-   `ufw enable` might prompt: `Command may disrupt existing ssh connections. Proceed with y/n?`. Type `y` and press `Enter`. After executing `allow ssh` you are safe.
+`ufw enable` might prompt: `Command may disrupt existing ssh connections. Proceed with y/n?`. Type `y` and press `Enter`. After executing `allow ssh` you are safe.
 
-**3. Install Docker and prepare directory structure**
+### 3. Install Docker and prepare the directory structure
 
-**3.1.** Install Docker and grant user permissions.
+#### 3.1. Docker installation and configuration
+Install Docker and grant user permissions.
    ```bash
    # Install necessary dependencies
    # sudo: executes the command with administrator privileges
@@ -243,10 +254,10 @@
    # radar-admin: user to be modified
    sudo usermod -aG docker radar-admin
    ```
-   For the Docker permission to apply, exit the server (`Ctrl + D`) and log back in via SSH.
+For the Docker permission to apply, exit the server (`Ctrl + D`) and log back in via SSH.
 
-
-**3.2.** Create the folder structure to support Docker containers.
+#### 3.2. Folder structure
+Create the folder structure to support Docker containers.
    ```bash
    # Create folder structure.  
    # mkdir: creates a directory
@@ -259,12 +270,13 @@
    sudo mkdir -p /opt/radar/infra/logs
    sudo mkdir -p /opt/radar/infra/scripts
    ```
-   If the folder structure already exists and the Docker services have been started before, it is possible that the `data` folder already has files created by PostgreSQL, which would have claimed ownership of the `data` folder. 
-   You can choose to delete everything created previously (if there is no important data to preserve). This step can be run with the bash automation script [infra_01_of_05_cleanup.sh](../scripts/infra_01_of_05_cleanup.sh). If the deletion of the `data` folder is denied due to lack of permissions, and you still want to delete it, you can use `sudo chown` to force ownership and then delete.
+If the folder structure already exists and the Docker services have been started before, it is possible that the `data` folder already has files created by PostgreSQL, which would have claimed ownership of the `data` folder. 
+You can choose to delete everything created previously (if there is no important data to preserve). This step can be run with the bash automation script [infra_01_of_05_cleanup.sh](../scripts/infra_01_of_05_cleanup.sh). If the deletion of the `data` folder is denied due to lack of permissions, and you still want to delete it, you can use `sudo chown` to force ownership and then delete.
 
-**4. **Deployment: Upload files (`docker-compose.prod.yml` and relates) and deploy.**
+### 4. Deployment: Upload files (`docker-compose.prod.yml` and relates) and deploy.
 
-**4.1.** From the **local machine** copy the files to the **VPS** using `scp`:
+#### 4.1. Upload files
+From the **local machine** copy the files to the **VPS** using `scp`:
    ```powershell
    # $home replaces %USERPROFILE% in PowerShell
    
@@ -292,7 +304,8 @@
    ```
    This step can be run with the cmd automation script [infra_02_of_05_deploy.cmd](../auto/infra_02_of_05_deploy.cmd).
 
-**4.2.** On the VM assign ownership and permissions to the copied files so the system functions correctly.
+#### 4.2. Ownership and permissions
+On the VM assign ownership and permissions to the copied files so the system functions correctly.
    ```bash
    # Assign ownership of the created folders to the radar-admin user.
    # chown: changes the ownership of a file or directory
@@ -348,9 +361,10 @@
    # --ignore='data': skips showing the 'data' folder to avoid displaying the extensive list of database files (if already created)
    ls -laR --ignore='data' /opt/radar/infra/
    ```
-   This step can be run with the bash automation script [infra_03_of_05_config.sh](../scripts/infra_03_of_05_config.sh).
+This step can be run with the bash automation script [infra_03_of_05_config.sh](../scripts/infra_03_of_05_config.sh).
  
-**4.3.** Start the services and monitor their initialization
+#### 4.3. Start services and monitoring
+Start the services and monitor their initialization
    ```bash
    cd /opt/radar/infra
 
@@ -365,9 +379,9 @@
    # Validate the status of the containers
    docker compose -f docker-compose.prod.yml ps
    ```
-   This step can be run with the bash automation script [infra_04_of_05_dc.sh](../scripts/infra_04_of_05_dc.sh)
-   
-   During the execution of `docker compose ... up -d`, monitor the initialization in another open terminal:
+This step can be run with the bash automation script [infra_04_of_05_dc.sh](../scripts/infra_04_of_05_dc.sh)
+
+During the execution of `docker compose ... up -d`, monitor the initialization in another open terminal:
    ```bash
    # Monitor the creation of the radar and metabase databases
    # -f (follow): to keep showing new logs in real time
@@ -378,7 +392,8 @@
    docker logs -f radar-metabase
    ```
 
-**4.4.** Verify the creation of the `radar` and `metabase` databases within the PostgreSQL container.
+#### 4.4. Check database initialization
+Verify the creation of the `radar` and `metabase` databases within the PostgreSQL container.
    ```bash
    # Execute a command inside the PostgreSQL container to list the databases
    # docker exec: executes a command inside a running container
@@ -395,10 +410,11 @@
    # \dt: psql command to list tables in the current database
    docker exec -it radar-postgres psql -U postgres -d radar -c "\dt"
    ```
-   
-**5. Schedule the engine by enabling systemd `.service` and `.timer` files and validate execution logs via `journalctl`.**
 
-**5.1.** Enable the timer to execute `radar-core` according to the schedule defined in `radar-core.timer`.
+### 5. Schedule the engine by enabling systemd `.service` and `.timer` files and validate execution logs via `journalctl`.
+
+#### 5.1. Schedule through systemd
+Enable the timer to execute `radar-core` according to the schedule defined in `radar-core.timer`.
    ```bash
    # Notify systemd that service files have been added or modified
    sudo systemctl daemon-reload
@@ -416,18 +432,19 @@
    # radar-admin: user to be modified
    sudo usermod -aG systemd-journal radar-admin
    ```
-   For the `systemd-journal` permission to apply, exit the server (`Ctrl + D`) and log back in via SSH.
-   
-   If in step 4.2 you executed [infra_03_of_05_config.sh](../scripts/infra_03_of_05_config.sh), the service and timer should already be enabled and started.
+For the `systemd-journal` permission to apply, exit the server (`Ctrl + D`) and log back in via SSH.
+
+If in step 4.2 you executed [infra_03_of_05_config.sh](../scripts/infra_03_of_05_config.sh), the service and timer should already be enabled and started.
  
-**5.2.** To validate that everything (Docker, Network, Database, Permissions, Settings) works, trigger the engine:
+#### 5.2. Validate execution
+To validate that everything (Docker, Network, Database, Permissions, Settings) works, trigger the engine:
    ```bash
    # Launch the calculation process
    # systemctl: manages system services
    # start: starts the service
    sudo systemctl start radar-core.service
    ```
-   To monitor the execution and review the logs of the `radar-core` service:
+To monitor the execution and review the logs of the `radar-core` service:
    ```bash
    # journalctl: tool to view system logs managed by systemd
    # -u (unit): filters the logs by the service unit name
@@ -435,9 +452,10 @@
    # -f (follow): to keep showing new logs in real time
    journalctl -u radar-core.service -f
    ```
-   This step can be run with the bash automation script [infra_05_of_05_validate.sh](../scripts/infra_05_of_05_validate.sh).
+This step can be run with the bash automation script [infra_05_of_05_validate.sh](../scripts/infra_05_of_05_validate.sh).
 
-**6. Access services (PostgreSQL and Metabase) by creating an SSH Tunnel from the local machine** 
+### 6. Use SSH Tunnel
+Access services (PostgreSQL and Metabase) by creating an SSH Tunnel from the local machine 
    ```PowerShell
    ssh -i $home\.ssh\radar_ed25519 -L 5433:127.0.0.1:5432 -L 3001:127.0.0.1:3000 -N radar-admin@<SERVER_IP>
    ```
