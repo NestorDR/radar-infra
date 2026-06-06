@@ -1,0 +1,19 @@
+# terraform/terraform.tfvars.template
+
+# Template for local unversioned secrets and parameters.
+# Copy this file to 'terraform.tfvars' in the same directory and fill in his/her actual values.
+
+# Hetzner Cloud API token (Read & Write permissions required)
+hcloud_token = "your_hetzner_cloud_api_token_here"
+
+# Domain name to manage with Terraform (must be registered and managed by Hetzner DNS)
+domain_name = "yourdomain.com"
+
+# Shared web hosting server public IP (for static root domain routing)
+webhosting_ip = "0.0.0.0"
+
+# Hetzner VPS public IPv4 address (for application subdomain routing)
+vps_ip = "0.0.0.0"
+
+# Hetzner VPS public IPv6 address (for Dual-Stack routing)
+vps_ipv6 = "2a01:4f9:..."
