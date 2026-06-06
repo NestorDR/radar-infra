@@ -51,7 +51,7 @@ As documented in the Architecture Decision Records [ADR-001.production_deploymen
 
 The chosen approach uses **`systemd timer + service`** to schedule containerized, one-shot executions of `radar-core`. This architecture was selected over alternatives as explained in the ADRs.
 
-For a detailed step-by-step guide on deploying to Hetzner Cloud, see [Deployment_02_execution.md](docs/Deployment_02_execution.md).
+For a detailed step-by-step guide on deploying to Hetzner Cloud, see [Deployment_01_isolation_validation.md](docs/Deployment_01_isolation_validation.md).
 
 ### Observability & Logs
 In production, application logs are not collected via Docker's internal mechanisms. Instead, they are routed directly to the host's journaling system. To consult the ephemeral engine logs, use the following command:
