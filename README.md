@@ -2,6 +2,8 @@
 
 Radar Infra is the infrastructure companion to the [Radar Core](https://github.com/NestorDR/radar-core) project. It provides the necessary tools, databases, environments, and deployment configurations to run the Financial Strategy Analyzer efficiently across development, testing, and production environments.
 
+The fully operational solution can be visited at https://radar.ndromero.com 
+
 ## Features
 - **Database Provisioning**: Automated initialization scripts (`.sql` and `.sh`) for PostgreSQL, including schema creation, views, and Metabase restoration.
 - **Environment Management**: Templated environment variables for Development (`dev`), End-to-End testing (`e2e`), and Production (`prod`).
