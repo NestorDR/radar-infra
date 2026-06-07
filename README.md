@@ -7,7 +7,7 @@ Radar Infra is the infrastructure companion to the [Radar Core](https://github.c
 - **Environment Management**: Templated environment variables for Development (`dev`), End-to-End testing (`e2e`), and Production (`prod`).
 - **Container Orchestration**: Docker Compose configurations tailored for different stages (`docker-compose.dev.yml`, `docker-compose.e2e.yml`, `docker-compose.prod.yml`).
 - **Secure Gateway & Reverse Proxy**: Caddy server acting as the edge reverse proxy with automatic SSL/TLS via Let's Encrypt / ZeroSSL, securing public web traffic on ports `80` and `443`.
-- **Declarative DNS (IaC)**: Autoritative Dual-Stack (A and AAAA records) DNS zone management using Terraform for the subdomain `radar.ndromero.com`.
+- **Declarative DNS (IaC)**: Autoritative Dual-Stack (A and AAAA records) DNS zone management using Terraform for the subdomain `radar`.
 - **Automation Scripts**: Helper scripts (`auto/dc.cmd`, `auto/dump_mb_db.cmd`) to streamline Docker operations and database backups, along with Bash scripts for automated provisioning, remote backups, and deployment on Linux servers.
 - **Architectural Decision Records (ADRs)**: Documentation of key infrastructure decisions, such as deployment scheduling.
 

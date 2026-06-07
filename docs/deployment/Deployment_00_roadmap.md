@@ -26,7 +26,7 @@ This document outlines the incremental deployment strategy for the Radar project
 1. Buy domain
 2. **DNS Configuration with Terraform (IaC):**
    * Create a `terraform/` directory in the project root to host the configuration.
-   * Configure the `providers.tf`, `variables.tf`, and `main.tf` files using the official [hetznercloud/hcloud](https://registry.terraform.io/providers/hetznercloud/hcloud/latest) provider to configure the DNS zone for `ndromero.com`.
+   * Configure the `providers.tf`, `variables.tf`, and `main.tf` files using the official [hetznercloud/hcloud](https://registry.terraform.io/providers/hetznercloud/hcloud/latest) provider to configure the DNS zone for bought domain.
    * Declare the **A Record** for the `radar` subdomain, pointing dynamically to the Hetzner VM's public IPv4 address.
    * Declare the **AAAA Record** for the `radar` subdomain, pointing dynamically to the Hetzner VM's public IPv6 address.
    * Initialize and apply the resources: execute `terraform init`, `terraform plan` and `terraform apply` from the local workstation.
