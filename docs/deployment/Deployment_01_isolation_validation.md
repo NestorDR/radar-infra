@@ -271,7 +271,7 @@ Create the folder structure to support Docker containers.
    sudo mkdir -p /opt/radar/infra/scripts
    ```
 If the folder structure already exists and the Docker services have been started before, it is possible that the `data` folder already has files created by PostgreSQL, which would have claimed ownership of the `data` folder. 
-You can choose to delete everything created previously (if there is no important data to preserve). This step can be run with the bash automation script [infra_01_of_05_cleanup.sh](../scripts/infra_01_of_05_cleanup.sh). If the deletion of the `data` folder is denied due to lack of permissions, and you still want to delete it, you can use `sudo chown` to force ownership and then delete.
+You can choose to delete everything created previously (if there is no important data to preserve). This step can be run with the bash automation script [infra_01_of_05_cleanup.sh](../../scripts/infra_01_of_05_cleanup.sh). If the deletion of the `data` folder is denied due to lack of permissions, and you still want to delete it, you can use `sudo chown` to force ownership and then delete.
 
 ### 4. Deployment: Upload files (`docker-compose.prod.yml` and relates) and deploy.
 
@@ -302,7 +302,7 @@ From the **local machine** copy the files to the **VPS** using `scp`:
    # --ignore='data': skips showing the 'data' folder to avoid displaying the extensive list of database files (if already created)
    ssh -i $home\.ssh\radar_ed25519 radar-admin@<SERVER_IP> "ls -laR --ignore='data' /opt/radar/infra/"
    ```
-   This step can be run with the cmd automation script [infra_02_of_05_deploy.cmd](../auto/infra_02_of_05_deploy.cmd).
+   This step can be run with the cmd automation script [infra_02_of_05_deploy.cmd](../../auto/infra_02_of_05_deploy.cmd).
 
 #### 4.2. Ownership and permissions
 On the VM assign ownership and permissions to the copied files so the system functions correctly.
@@ -361,7 +361,7 @@ On the VM assign ownership and permissions to the copied files so the system fun
    # --ignore='data': skips showing the 'data' folder to avoid displaying the extensive list of database files (if already created)
    ls -laR --ignore='data' /opt/radar/infra/
    ```
-This step can be run with the bash automation script [infra_03_of_05_config.sh](../scripts/infra_03_of_05_config.sh).
+This step can be run with the bash automation script [infra_03_of_05_config.sh](../../scripts/infra_03_of_05_config.sh).
  
 #### 4.3. Start services and monitoring
 Start the services and monitor their initialization
@@ -379,7 +379,7 @@ Start the services and monitor their initialization
    # Validate the status of the containers
    docker compose -f docker-compose.prod.yml ps
    ```
-This step can be run with the bash automation script [infra_04_of_05_dc.sh](../scripts/infra_04_of_05_dc.sh)
+This step can be run with the bash automation script [infra_04_of_05_dc.sh](../../scripts/infra_04_of_05_dc.sh)
 
 During the execution of `docker compose ... up -d`, monitor the initialization in another open terminal:
    ```bash
@@ -434,7 +434,7 @@ Enable the timer to execute `radar-core` according to the schedule defined in `r
    ```
 For the `systemd-journal` permission to apply, exit the server (`Ctrl + D`) and log back in via SSH.
 
-If in step 4.2 you executed [infra_03_of_05_config.sh](../scripts/infra_03_of_05_config.sh), the service and timer should already be enabled and started.
+If in step 4.2 you executed [infra_03_of_05_config.sh](../../scripts/infra_03_of_05_config.sh), the service and timer should already be enabled and started.
  
 #### 5.2. Validate execution
 To validate that everything (Docker, Network, Database, Permissions, Settings) works, trigger the engine:
@@ -452,7 +452,7 @@ To monitor the execution and review the logs of the `radar-core` service:
    # -f (follow): to keep showing new logs in real time
    journalctl -u radar-core.service -f
    ```
-This step can be run with the bash automation script [infra_05_of_05_validate.sh](../scripts/infra_05_of_05_validate.sh).
+This step can be run with the bash automation script [infra_05_of_05_validate.sh](../../scripts/infra_05_of_05_validate.sh).
 
 ### 6. Use SSH Tunnel
 Access services (PostgreSQL and Metabase) by creating an SSH Tunnel from the local machine 
@@ -461,8 +461,10 @@ Access services (PostgreSQL and Metabase) by creating an SSH Tunnel from the loc
    ```
 
 ### Automation Summary
-- [infra_01_of_05_cleanup.sh](../scripts/infra_01_of_05_cleanup.sh)
-- [infra_02_of_05_deploy.cmd](../auto/infra_02_of_05_deploy.cmd)
-- [infra_03_of_05_config.sh](../scripts/infra_03_of_05_config.sh)
-- [infra_04_of_05_dc.sh](../scripts/infra_04_of_05_dc.sh)
-- [infra_05_of_05_validate.sh](../scripts/infra_05_of_05_validate.sh)
+- [infra_01_of_05_cleanup.sh](../../scripts/infra_01_of_05_cleanup.sh)
+- [infra_02_of_05_deploy.cmd](../../auto/infra_02_of_05_deploy.cmd)
+- [infra_03_of_05_config.sh](../../scripts/infra_03_of_05_config.sh)
+- [infra_04_of_05_dc.sh](../../scripts/infra_04_of_05_dc.sh)
+- [infra_05_of_05_validate.sh](../../scripts/infra_05_of_05_validate.sh)
+
+To start execution, simply run them as a program: `./<infra_0n_of_05_suffix>.sh`

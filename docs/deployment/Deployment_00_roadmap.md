@@ -27,12 +27,12 @@ This document outlines the incremental deployment strategy for the Radar project
 2. **DNS Configuration with Terraform (IaC):**
    * Create a `terraform/` directory in the project root to host the configuration.
    * Configure the `providers.tf`, `variables.tf`, and `main.tf` files using the official [hetznercloud/hcloud](https://registry.terraform.io/providers/hetznercloud/hcloud/latest) provider to configure the DNS zone for `ndromero.com`.
-   * Declare the **A Record** for the `radar.ndromero.com` subdomain, pointing dynamically to the Hetzner VM's public IPv4 address.
-   * Declare the **AAAA Record** for the `radar.ndromero.com` subdomain, pointing dynamically to the Hetzner VM's public IPv6 address.
+   * Declare the **A Record** for the `radar` subdomain, pointing dynamically to the Hetzner VM's public IPv4 address.
+   * Declare the **AAAA Record** for the `radar` subdomain, pointing dynamically to the Hetzner VM's public IPv6 address.
    * Initialize and apply the resources: execute `terraform init`, `terraform plan` and `terraform apply` from the local workstation.
 3. **Compose Update:** SSH into the server and modify the `docker-compose.prod.yml` to:
    * Remove the `ports` mapping from the `metabase` service.
-   * Add the `gateway` (Caddy) service block.
+   * Add the `caddy` service block with the required configuration to act as a reverse proxy.
 4. *Proxy Setup:** Create the `Caddyfile` on the server with the reverse proxy directives mapping the domain to `metabase:3000`.
 5. **Firewall Update:** Open standard web ports on the OS firewall: `sudo ufw allow 80/tcp` and `sudo ufw allow 443/tcp`.
 6. **Seamless Redeployment:** Execute `docker compose up -d`. Docker will gracefully restart Metabase and boot up Caddy, transitioning the architecture from private to public with automatic HTTPS via Let's Encrypt.

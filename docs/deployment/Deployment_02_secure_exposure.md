@@ -4,10 +4,10 @@
 
 **Objective:** Introduce a Reverse Proxy (Caddy) and TLS encryption, enabling secure public web access without affecting the internal database state or existing dashboards, managing the DNS layer with Terraform to have a declarative and reproducible process.
 
-### 1. Configuración de DNS con Terraform (IaC)
+### 1. DNS Configuration with Terraform (IaC)
 
 #### 1.1. Architectural Alignment
-Focused on the secure and decoupled isolation of workloads and authoritative DNS routing:
+The work was focused on the secure and decoupled isolation of workloads and authoritative DNS routing:
 - **Root Domain & WWW Subdomain:** Dedicated exclusively to the static, shared web hosting server (representing the primary static web assets) to completely decouple static content delivery from active application systems.
 - **Application Subdomain:** Configured as the secure gateway to resolve directly to the public Dual-Stack (IPv4/IPv6) interfaces of our virtual private server (VPS).
 - **Reverse Proxy Strategy:** Addressed the requirements to introduce an edge gateway (Caddy) on the VPS, removing internal service ports from host loopback exposure and ensuring the proxy terminates SSL/TLS on standard web ports (`80/443`) before routing internal traffic over the secure Docker bridge network.
@@ -34,3 +34,21 @@ To bring the pre-existing, console-managed DNS infrastructure under declarative 
 - **Graceful Transition of Subdomains:** The legacy A/AAAA records for the `www` subdomain were removed from the web console and replaced seamlessly with a declarative CNAME record, while the new Dual-Stack records (A/AAAA) for the application subdomain were safely provisioned.
 - **Historical Traceability:** Once the initial import and deployment successfully completed with zero downtime, the temporary `imports.tf` file was moved to a designated `history/` subdirectory to maintain a clean root workspace while preserving a historical audit trail of our technical actions.
 
+### 2. Reverse Proxy & Gateway Configuration with Caddy
+
+To transition the containerized stack from loopback host access to a secure, public HTTPS gateway, was integrated Caddy as the edge reverse proxy. The deployment conforms to the following engineering decisions.
+
+#### 2.1. Service Hardening & Network Isolation
+The host port mapping (`127.0.0.1:3000`) was removed (commented) from the `metabase` service definition. The application is now fully isolated within the internal `radar-network` bridge, accessible exclusively through the proxy, minimizing the host's direct attack surface.
+
+#### 2.2. Docker Container Configuration
+- **Deterministic Docker Image Selection:** Was pinned the image tag to **`caddy:2-alpine`** to ensure reproducible builds across deployments. The Alpine-based distribution reduces the image footprint and decreases the container OS attack surface compared to standard Debian-based alternatives.
+- **Hybrid Volume Persistence Strategy:** To resolve container write-permission collisions and safeguard critical cryptographic state, was implemented a hybrid volume strategy:
+  - **Docker Bind Mount (`./Caddyfile`):** Mounted as Read-Only (`:ro`) to feed the static, declarative configuration from the host directly into the container.
+  - **Docker Named Volumes (`radar-caddy-data` and `radar-caddy-config`):** Configured to manage `/data` and `/config` state. Persisting the `/data` directory is operationally critical as it stores SSL/TLS certificates and ACME private keys, preventing excessive duplicate certificate request queries that would trigger Let's Encrypt / ZeroSSL rate-limiting caps.
+ 
+#### 2.3. Dynamic Configuration & Sanitized IaC
+To avoid exposing sensitive metrics (such as the administrator's email or the active subdomain) in public repositories, was leveraged Caddy’s native environment variable interpolation. The `Caddyfile` utilizes `{$ADMIN_EMAIL}` and `{$WEB_SITE_ADDRESS}` dynamically resolved at container initialization from the local, unversioned `envs/.env.prod` file.
+
+#### 2.4. Granular Database Backups
+To support operational disaster recovery, we replaced generic database cluster backups with a multi-database script (`dump_postgres_db.sh`). Using `pg_dump` against explicit targets, this utility allows independent, granular backups of the `radar` and `metabase` databases, preventing empty schema outputs while preserving the independent lifecycles of the calculation and visualization layers.
