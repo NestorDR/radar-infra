@@ -2,6 +2,7 @@
 
 # scripts/infra_05_of_05_validate.sh
 # Purpose: Validate the successful deployment of the infrastructure by checking database creation, radar-core execution and a clean log generation.
+# Usage: ./infra_05_of_05_validate.sh
 
 # List databases in the PostgreSQL container to verify that they has been created successfully
 docker exec -it radar-postgres psql -U postgres -c "\l"

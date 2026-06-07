@@ -3,6 +3,7 @@
 # scripts/infra_01_of_05_cleanup.sh
 # WARNING: This script is destructive. It stops all services and WIPES the database data.
 # Purpose: Ensure a clean state for deployment validation.
+# Usage: ./infra_01_of_05_cleanup.sh
 
 # Configuration
 PROJECT_NAME="radar-core"

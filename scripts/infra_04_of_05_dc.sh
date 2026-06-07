@@ -1,13 +1,15 @@
 #!/bin/bash
 
 # scripts/infra_04_of_05_dc.sh
-# Purpose: Orchestrate the deployment of persistent services (PostgreSQL & Metabase)
+# Purpose: Orchestrate the deployment of persistent services (PostgreSQL, Metabase & Caddy)
+# Usage: ./infra_04_of_05_dc.sh
 
 # Configuration
 PROJECT_NAME="radar-core"
 INFRA_DIR="/opt/radar/infra"
 # Use relative paths for Docker Compose once we are inside the INFRA_DIR
 COMPOSE_FILE="docker-compose.prod.yml"
+CADDY_FILE="Caddyfile"
 ENV_FILE="envs/.env.prod"
 
 echo "--- Starting infrastructure deployment [Project: $PROJECT_NAME] ---"
@@ -20,6 +22,11 @@ cd "$INFRA_DIR" || { echo "Error: Could not enter $INFRA_DIR"; exit 1; }
 echo "[2/4] Validating configuration files..."
 if [ ! -f "$COMPOSE_FILE" ]; then
     echo "Error: Compose file not found at $COMPOSE_FILE"
+    exit 1
+fi
+
+if [ ! -f "$CADDY_FILE" ]; then
+    echo "Error: Caddy configuration file not found at $CADDY_FILE"
     exit 1
 fi
 
@@ -40,7 +47,10 @@ docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" -p "$PROJECT_NAME" up -
 
 # Final status report
 echo "[4/4] Checking service status..."
+# ps: Lists the containers in the current project, showing their status
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps
 
 echo "--- Deployment process finished ---"
-echo "Tip: You can monitor database initialization with: docker logs -f radar-postgres"
+echo "Tips:"
+echo "  1. Monitor database initialization with ......: docker logs -f radar-postgres"
+echo "  2. Monitor SSL/TLS certificate generation with: docker logs -f radar-caddy"

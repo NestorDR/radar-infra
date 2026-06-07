@@ -16,6 +16,7 @@ scp -i %USERPROFILE%\.ssh\radar_ed25519 database/init/* radar-admin@%RadarIPAddr
 scp -i %USERPROFILE%\.ssh\radar_ed25519 envs/.env.prod radar-admin@%RadarIPAddress%:/opt/radar/infra/envs
 scp -i %USERPROFILE%\.ssh\radar_ed25519 scripts/* radar-admin@%RadarIPAddress%:/opt/radar/infra/scripts
 scp -i %USERPROFILE%\.ssh\radar_ed25519 systemd/* radar-admin@%RadarIPAddress%:/opt/radar/infra/systemd
+scp -i %USERPROFILE%\.ssh\radar_ed25519 Caddyfile radar-admin@%RadarIPAddress%:/opt/radar/infra
 
 :: Verify results via SSH
 :: ssh (secure shell): Tool for securely connecting to a remote server and executing commands

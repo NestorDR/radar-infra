@@ -3,6 +3,7 @@
 # scripts/run_radar_core.sh
 # Lifecycle management of the ephemeral radar-core container.
 # Ensures clean environment, shared memory allocation, and logging.
+# Usage: ./run_radar_core.sh
 
 set -e # Exit immediately if a command exits with a non-zero status.
 

@@ -3,6 +3,7 @@
 # scripts/infra_03_of_05_config.sh
 # Purpose: Apply necessary permissions and configurations for the radar-core infrastructure.
 # RUN previously: sudo chmod +x /opt/radar/infra/scripts/infra_03_of_05_config.sh
+# Usage: ./infra_03_of_05_config.sh
 
 echo "--- Starting the Infrastructure Configuration ---"
 
