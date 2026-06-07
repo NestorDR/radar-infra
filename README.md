@@ -47,18 +47,10 @@ The repository is structured to separate code and configuration from ephemeral o
 3. **Database Initialization**:
    The `database/init/` directory contains scripts (e.g., `00_init_dbs.sh`, `01_radar_schema.sql`, `03_metabase_restore.sql`, `04_patch_metabase.sh`) that Docker automatically executes when the PostgreSQL container is first created.
 
-## Architecture & Next Steps
-The infrastructure currently relies on Docker to orchestrate databases (PostgreSQL) and analytics tools (Metabase). 
-
-### Production Deployment Scheduling
-The chosen approach uses **`systemd timer + service`** to schedule containerized, one-shot executions of `radar-core`. This architecture was selected over alternatives as explained in the ADRs.
-
-For a detailed step-by-step guide on deploying to Hetzner Cloud, see [Deployment_01_isolation_validation.md](docs/deployment/Deployment_01_isolation_validation.md) and [Deployment_02_secure_exposure.md](docs/deployment/Deployment_02_secure_exposure.md).
-
 ## Architecture & Production State
-As documented in the Architecture Decision Records [ADR-001.production_deployment_scheduling.md](docs/adr/ADR-001.production_deployment_scheduling.md) and [ADR-002.production_deployment_on_x86_&_debian.md](docs/adr/ADR-002.production_deployment_on_x86_%26_debian.md), `radar-core` is deployed in a production environment on an **x86_64** VM with **Debian 13 (Trixie)** hosted on Hetzner Cloud.
+As documented in the Architecture Decision Records [ADR-001.production_deployment_scheduling.md](docs/adr/ADR-001.production_deployment_scheduling.md) and [ADR-002.production_deployment_on_x86_&_debian.md](docs/adr/ADR-002.production_deployment_on_x86_%26_debian.md), `radar-core` is deployed to a production environment on an **x86_64** VM with **Debian 13 (Trixie)** hosted on Hetzner Cloud.
 
-The persistent services, **PostgreSQL and Metabase** run continuously under Docker Compose. Under an approach of one-shot executions, the ephemeral financial strategy analyzer (`radar-core`) is run as a periodic, decoupled batch container controlled by **`systemd timer + service`**, freeing resources on completion. 
+The persistent services, **PostgreSQL and Metabase**, run continuously under Docker Compose. Using a one-time execution approach, the ephemeral financial strategy analyzer (`radar-core`) runs as a decoupled, periodic batch container controlled by `systemd timer + service`, freeing resources upon completion.
 
 Secure public exposure is resolved natively on the server using [Caddy](https://caddyserver.com/docs/quick-starts/reverse-proxy) as the edge reverse proxy, mapping requests to the internal Metabase container without host loopback port leakage, while the DNS authoritative resolution is declaratively managed via Terraform.
 
@@ -74,27 +66,27 @@ sudo journalctl -u radar-core.service
 The repository contains scripts for both Windows and Linux to simplify common operational tasks and automate deployments:
 
 **Windows Command Scripts (`auto/`):**
-- **`auto\dc.cmd <target>`**: Helper for Docker Compose.
+- `auto\dc.cmd <target>`: Helper for Docker Compose.
   - Usage: `auto\dc.cmd e2e`.
   - It handles environment file injection and project naming.
   
-- **`auto\dump_mb_db.cmd`**: Utility to easily back up or extract the Metabase application database.
+- `auto\dump_mb_db.cmd`: Utility to easily back up or extract the Metabase application database.
   - Usage: `auto\dump_mb_db.cmd [db_password]`.
   - It generates a dump of the Metabase database and sanitizes sensitive data.
   
-- **`auto\infra_02_of_05_deploy.cmd`**: Uses `scp` to transfer deployment files to the remote server.
+- `auto\infra_02_of_05_deploy.cmd`: Uses `scp` to transfer deployment files to the remote server.
 
 **Linux Automation Scripts (`scripts/`):**
 A suite of scripts automates the 5 phases of production deployment:
-- **`scripts/infra_01_of_05_cleanup.sh`**: Environment cleanup and reset.
-- **`scripts/infra_03_of_05_config.sh`**: Assigns permissions, applies security hardening, and configures `systemd`.
-- **`scripts/infra_04_of_05_dc.sh`**: Brings up persistent services (PostgreSQL and Metabase).
-- **`scripts/infra_05_of_05_validate.sh`**: Executes and validates the initial run of the `radar-core` engine.
-- **`scripts/open_web_ports.sh`**: Automatically configures the UFW firewall on the server to allow ports 80 and 443 for web access.
-- **`scripts/dump_postgres_db.sh`**: Executes target-specific granular pg_dump backups for the radar and metabase databases inside the production PostgreSQL cluster.
+- `scripts/infra_01_of_05_cleanup.sh`: Environment cleanup and reset.
+- `scripts/infra_03_of_05_config.sh`: Assigns permissions, applies security hardening, and configures `systemd`.
+- `scripts/infra_04_of_05_dc.sh`: Brings up persistent services (PostgreSQL and Metabase).
+- `scripts/infra_05_of_05_validate.sh`: Executes and validates the initial run of the `radar-core` engine.
+- `scripts/open_web_ports.sh`: Automatically configures the UFW firewall on the server to allow ports 80 and 443 for web access.
+- `scripts/dump_postgres_db.sh`: Executes target-specific granular pg_dump backups for the radar and metabase databases inside the production PostgreSQL cluster.
 
 **Execution Wrapper:**
-- **`scripts/run_radar_core.sh`**: Critical wrapper around `docker run` for the ephemeral engine (managed by `systemd`). It injects necessary shared memory (`--shm-size 2gb`) for data processing tools like Numba/Polars and securely routes container logs directly to JournalD.
+- `scripts/run_radar_core.sh`: Critical wrapper around `docker run` for the ephemeral engine (managed by `systemd`). It injects necessary shared memory (`--shm-size 2gb`) for data processing tools like Numba/Polars and securely routes container logs directly to JournalD.
 
 ## Project Status
 The production deployment model using`x86_64` VMs, `Debian 13`, and `systemd` timers, `Terraform` IaC, and `Caddy` reverse proxy on Hetzner Cloud is fully operational, stable, and completely documented.
