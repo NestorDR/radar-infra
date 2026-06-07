@@ -13,11 +13,12 @@ services:
     volumes:
       # Mount initialization scripts (00, 01, ...) to initialize the database on the first run
       - ./database/init:/docker-entrypoint-initdb.d
-      # Bind mounts (https://docs.docker.com/engine/storage/bind-mounts/)
-      # 1. When you use a "bind mount", a file or dir on the host machine is mounted directly from the host into a container. In general, this is preferred.
+      # Bind mounts (https://docs.docker.com/engine/storage/bind-mounts/) a file or dir on the host machine
+      # 1. When you use a "Bind Mount", a file or dir on the host machine is mounted directly from the host into a container.
+      #    In general, this is preferred to Named Volumes if you need to access the data from outside the container.
       - ./database/docker_volume:/var/lib/postgresql/data
-      # 2. By contrast, when you use (Named) Volumes, they are persistent data stores created and managed by Docker.
-      # - radar_pg_data:/var/lib/postgresql/data
+      # 2. By contrast, when you use "Named Volumes", they are persistent data stores created and managed by Docker.
+      # - pg_data:/var/lib/postgresql/data
     healthcheck:
       # Wait until the database is ready to accept commands before declaring it healthy.
       # $$ Prevents Docker tries to expand the variable before sending it to the container
@@ -72,11 +73,12 @@ networks:
     name: radar-e2e-network                   # Network name
     driver: bridge                            # Standard bridge network for local deployment
 
-# Volume definition: required if you use a bind mount with a (named) volume (see db service above)
+# Volume definition: required if you use a Docker Named Volume mount (see db service above)
 #volumes:
-#  radar_pg_data:                              # Logical volume name (used inside services)
-#    driver: local                             # Stores data on host (others: nfs, azurefile, sshfs, etc.)
-#    driver_opts:                              # Extra options
-#      type: none                              # No special filesystem type, use the host’s native one (others: `bind` for Linux)
-#      o: bind                                 # Mount as a bind (link a real host folder)
-#      device: ./database/docker_volume        # Path on your host where data will be stored
+#  pg_data:                                   # Logical volume name (used inside services)
+#    name: radar_pg_data                      # Physical volume name (visible in `docker volume ls` and on the host)
+#    driver: local                            # Stores data on host (others: nfs, azurefile, sshfs, etc.)
+#    driver_opts:                             # Extra options
+#      type: none                             # No special filesystem type, use the host’s native one (others: `bind` for Linux)
+#      o: bind                                # Mount as a bind (link a real host folder)
+#      device: ./database/docker_volume       # Path on your host where data will be stored

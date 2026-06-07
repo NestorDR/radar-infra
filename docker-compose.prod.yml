@@ -15,7 +15,9 @@ services:
     volumes:
       # Mount initialization scripts (00, 01, ...) to initialize the database on the first run
       - ./database/init:/docker-entrypoint-initdb.d
-      # When you use a "bind mount", a file or dir on the host machine is mounted directly from the host into a container. In general, this is preferred.
+      # Bind Mount (https://docs.docker.com/engine/storage/bind-mounts/), a file or dir on the host machine is mounted
+      #  directly from the host into a container.
+      # In general, this is preferred to Named Volumes if you need to access the data from outside the container.
       - ./database/data:/var/lib/postgresql/data
     healthcheck:
       # Wait until the database is ready to accept commands before declaring it healthy.
@@ -42,9 +44,10 @@ services:
       MB_DB_PASS: ${POSTGRES_PASSWORD}        # Rename the password to match the name expected by the application, env var injected through `docker compose` command
       # Java memory limit/tuning for performance & stability (HPC Optimization)
       JAVA_OPTS: "-Xmx2g -Xms2g"              # Strict JVM memory allocation (Xmx = max heap/memory size, Xms = start heap/memory size)
-    ports:
-      # Use a reverse proxy (Caddy/Nginx) for SSL later
-      - "127.0.0.1:3000:3000"                 # Syntax: ${ENV_VAR_FOR_HOST_PORT:-DEFAULT_VALUE}:CONTAINER_PORT
+    # ports:
+      # For security hardening, direct loopback exposure ("127.0.0.1:3000:3000") is disabled in production.
+      # - "127.0.0.1:3000:3000"               # Syntax: ${ENV_VAR_FOR_HOST_PORT:-DEFAULT_VALUE}:CONTAINER_PORT
+      # Metabase is isolated within the internal "radar-network" and is only accessible through the reverse proxy (Caddy).
     depends_on:
       db:
         condition: service_healthy
@@ -53,8 +56,33 @@ services:
         limits:
           memory: 2560M
 
+  caddy:
+    image: caddy:2-alpine                     # Pinned major version to ensure deterministic builds and avoid breaking changes from ':latest'
+    container_name: radar-caddy
+    restart: always
+    ports:
+      - "80:80"                               # HTTP port for initial ACME challenge and automatic HTTPS redirection
+      - "443:443"                             # HTTPS port for secure, encrypted client connections
+    env_file:
+      - envs/.env.prod                        # Injects unversioned environment variables ($SITE_ADDRESS, $ADMIN_EMAIL) directly to Caddy
+    volumes:
+      # Bind Mount: Used for the static configuration file because it is directly edited and managed from the host system
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Named Volumes: Used for state directories to prevent UID/GID permission collisions in Alpine and preserve SSL certificates
+      - caddy_data:/data                      # Critical: Preserves SSL certificates to prevent hitting Let's Encrypt rate limits
+      - caddy_config:/config                  # Preserves Caddy's internal active configuration state
+    depends_on:
+      - metabase
+
 # Network configuration for service communication
 networks:
   default:
     name: radar-network                       # Network name
     driver: bridge                            # Standard bridge network for local deployment
+
+# Definition of Docker Named Volumes for persistence and security
+volumes:
+  caddy_data:                                 # Logical volume name (used inside services)
+    name: radar-caddy-data                    # Physical volume name (visible in `docker volume ls` and on the host)
+  caddy_config:
+    name: radar-caddy-config

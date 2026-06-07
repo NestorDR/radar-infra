@@ -1,0 +1,15 @@
+# Caddyfile
+
+# Global configuration block setting up server-wide properties
+{
+    # Injects the administrator's email at runtime to receive SSL expiration notices from Let's Encrypt
+    email {$ADMIN_EMAIL}
+}
+
+# Mapping the secure subdomain to the internal Metabase container
+# Dynamic Site Block resolved at startup from the container's environment variables
+{$WEB_SITE_ADDRESS} {
+    # Reverse proxy that directs all traffic reaching the public web site address to the internal Metabase
+    #  service and its default port (defined in docker-compose.prod.yml), over the secure Docker bridge network
+    reverse_proxy metabase:3000
+}

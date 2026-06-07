@@ -13,8 +13,9 @@ services:
     volumes:
       # Mount initialization scripts (00, 01, ...) to initialize the database on the first run
       - ./database/init:/docker-entrypoint-initdb.d
-      # Bind mounts (https://docs.docker.com/engine/storage/bind-mounts/)
-      # When you use a "bind mount", a file or dir on the host machine is mounted directly from the host into a container. In general, this is preferred.
+      # Bind Mount (https://docs.docker.com/engine/storage/bind-mounts/), a file or dir on the host machine is mounted
+      #  directly from the host into a container.
+      # In general, this is preferred to Named Volumes if you need to access the data from outside the container.
       - ./database/docker_volume:/var/lib/postgresql/data
     healthcheck:
       # Wait until the database is ready to accept commands before declaring it healthy.
