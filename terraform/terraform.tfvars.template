@@ -9,8 +9,11 @@ hcloud_token = "your_hetzner_cloud_api_token_here"
 # Domain name to manage with Terraform (must be registered and managed by Hetzner DNS)
 domain_name = "yourdomain.com"
 
-# Shared web hosting server public IP (for static root domain routing)
+# Shared web hosting server public IPv4 address (for static root domain routing)
 webhosting_ip = "0.0.0.0"
+
+# Shared web hosting server public IPv6 address (for Dual-Stack routing)
+webhosting_ipv6 = "2a01:4f8:..."
 
 # Hetzner VPS public IPv4 address (for application subdomain routing)
 vps_ip = "0.0.0.0"

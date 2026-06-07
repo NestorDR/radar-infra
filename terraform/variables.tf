@@ -19,6 +19,11 @@ variable "webhosting_ip" {
   description = "Public IP address of the shared web hosting provider"
 }
 
+variable "webhosting_ipv6" {
+  type        = string
+  description = "Public IPv6 address of the shared web hosting provider for Dual-Stack routing"
+}
+
 variable "vps_ip" {
   type        = string
   description = "Public IP address of the Hetzner VPS instance"

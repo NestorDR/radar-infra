@@ -20,7 +20,7 @@ This document outlines the incremental deployment strategy for the Radar project
 ---
 
 ## Stage 2: Secure Exposure (Network/Frontend Layer)
-**Objective:** Introduce a Reverse Proxy (Caddy) and TLS encryption, enabling secure public web access without affecting the internal database state or existing dashboards, managing the DNS layer declaratively with Terraform.
+**Objective:** Introduce a Reverse Proxy (Caddy) and TLS encryption, enabling secure public web access without affecting the internal database state or existing dashboards, managing the DNS layer with Terraform to have a declarative and reproducible process.
 
 **Technical Actions:**
 1. Buy domain

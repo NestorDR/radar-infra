@@ -30,3 +30,15 @@ import {
   to = hcloud_zone_rrset.root
   id = "${var.domain_name}/@/A"
 }
+
+# Fetches the pre-existing root (@) AAAA-record from the Hetzner DNS zone and binds it through the 'to' argument
+# to the local Terraform state file (terraform.tfstate file).
+#
+# CRITICAL: This import block requires a matching 'resource "hcloud_zone_rrset" "root_ipv6"'
+# block to be declared in the configuration files (e.g., main.tf) to act as the target destination.
+#
+# The identifier format maps to "zone_name/record_name/record_type" as mandated by the provider's specification/plugin.
+import {
+  to = hcloud_zone_rrset.root_ipv6
+  id = "${var.domain_name}/@/AAAA"
+}

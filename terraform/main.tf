@@ -12,7 +12,7 @@ resource "hcloud_zone" "domain_zone" {
   mode = "primary"
 }
 
-# Root record (@) pointing to the shared web hosting provider (for the main www website).
+# Root record (@) pointing to the shared web hosting provider (IPv4 for the main www website).
 # Resolved implicitly by mapping its 'zone' to the domain name attribute (.name) of 'hcloud_zone.domain_zone'.
 # Utilizing the domain name rather than the numeric ID prevents forced resource replacement (destroy and recreate)
 #  during state imports.
@@ -27,6 +27,25 @@ resource "hcloud_zone_rrset" "root" {
     {
       value   = var.webhosting_ip
       comment = "Shared webhosting server for static website"
+    }
+  ]
+}
+
+# Root record (@) pointing to the shared web hosting provider (IPv6 for Dual-Stack).
+# Inherits the zone reference dynamically from the domain name attribute (.name) of 'hcloud_zone.domain_zone'.
+# Utilizing the domain name rather than the numeric ID prevents forced resource replacement (destroy and recreate)
+#  during state imports.
+# The 'records' argument expects a list of structured record objects as mandated by the provider's RRSet schema.
+resource "hcloud_zone_rrset" "root_ipv6" {
+  zone = hcloud_zone.domain_zone.name
+  type = "AAAA"
+  name = "@"
+  ttl  = 3600
+
+  records = [
+    {
+      value   = var.webhosting_ipv6
+      comment = "Shared webhosting server for static website (IPv6)"
     }
   ]
 }

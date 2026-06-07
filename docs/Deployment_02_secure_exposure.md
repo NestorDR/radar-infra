@@ -2,7 +2,7 @@
 
 ## Stage 2: Secure Exposure (Network/Frontend Layer)
 
-**Objective:** Introduce a Reverse Proxy (Caddy) and TLS encryption, enabling secure public web access without affecting the internal database state or existing dashboards, managing the DNS layer declaratively with Terraform.
+**Objective:** Introduce a Reverse Proxy (Caddy) and TLS encryption, enabling secure public web access without affecting the internal database state or existing dashboards, managing the DNS layer with Terraform to have a declarative and reproducible process.
 
 ### 1. Configuración de DNS con Terraform (IaC)
 
@@ -30,7 +30,7 @@ To guarantee idempotency and follow Infrastructure as Code (IaC) best practices,
 
 #### 1.4. State Synchronization & Import Phase
 To bring the pre-existing, console-managed DNS infrastructure under declarative IaC control without service disruption, was executed a non-destructive state synchronization:
-- **Declarative Import Block Execution:** was used a temporary `imports.tf` file to map the existing authoritative root zone and the active root (`@`) A-record directly into the local `terraform.tfstate` database.
+- **Declarative Import Block Execution:** was used a temporary `imports.tf` file to map the existing authoritative root zone and the active root (`@`) A/AAAA-records directly into the local `terraform.tfstate` database.
 - **Graceful Transition of Subdomains:** The legacy A/AAAA records for the `www` subdomain were removed from the web console and replaced seamlessly with a declarative CNAME record, while the new Dual-Stack records (A/AAAA) for the application subdomain were safely provisioned.
 - **Historical Traceability:** Once the initial import and deployment successfully completed with zero downtime, the temporary `imports.tf` file was moved to a designated `history/` subdirectory to maintain a clean root workspace while preserving a historical audit trail of our technical actions.
 
