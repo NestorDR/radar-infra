@@ -89,9 +89,9 @@ A suite of scripts automates the 5 phases of production deployment:
 - `scripts/run_radar_core.sh`: Critical wrapper around `docker run` for the ephemeral engine (managed by `systemd`). It injects necessary shared memory (`--shm-size 2gb`) for data processing tools like Numba/Polars and securely routes container logs directly to JournalD.
 
 ## Project Status
-The production deployment model using`x86_64` VMs, `Debian 13`, and `systemd` timers, `Terraform` IaC, and `Caddy` reverse proxy on Hetzner Cloud is fully operational, stable, and completely documented.
+The production deployment model using`x86_64` VMs, `Debian 13`, `systemd` timers, `Terraform` IaC, and `Caddy` reverse proxy on Hetzner Cloud is fully operational, stable, and completely documented.
 
-Also, the infrastructure is fully operational for development and end-to-end testing environments.
+Also, the infrastructure is fully operational for local environments of development and end-to-end testing.
 
 ## License
 This project is licensed under the MIT License.
