@@ -99,4 +99,6 @@ The production deployment model using`x86_64` VMs, `Debian 13`, `systemd` timers
 Also, the infrastructure is fully operational for local environments of development and end-to-end testing.
 
 ## License
-This project is licensed under the MIT License.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). See the [LICENSE](LICENSE) file for the full license text.
+
+Under this license, if you modify this software or run it as a network service (SaaS), you must make your modified source code publicly available under the same terms.
