@@ -61,10 +61,10 @@ CREATE TABLE IF NOT EXISTS public.daily_data
     id             integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     security_id    integer        NOT NULL REFERENCES public.securities (id),
     date           date           NOT NULL,
-    open           numeric(13, 4) NOT NULL,
-    high           numeric(13, 4) NOT NULL,
-    low            numeric(13, 4) NOT NULL,
-    close          numeric(13, 4) NOT NULL,
+    open           numeric(24, 4) NOT NULL,
+    high           numeric(24, 4) NOT NULL,
+    low            numeric(24, 4) NOT NULL,
+    close          numeric(24, 4) NOT NULL,
     volume         bigint         NOT NULL,
     percent_change numeric(8, 2),
     UNIQUE (security_id, date)
@@ -95,8 +95,8 @@ CREATE TABLE IF NOT EXISTS public.ratios
     is_in_process                 boolean DEFAULT false NOT NULL,
     from_date                     date                  NOT NULL,
     to_date                       date                  NOT NULL,
-    initial_price                 numeric(12, 2)        NOT NULL,
-    final_price                   numeric(9, 2)         NOT NULL,
+    initial_price                 numeric(24, 2)        NOT NULL,
+    final_price                   numeric(24, 2)         NOT NULL,
     net_change                    real                  NOT NULL,
     signals                       smallint              NOT NULL,
     winnings                      real                  NOT NULL,
@@ -116,9 +116,9 @@ CREATE TABLE IF NOT EXISTS public.ratios
     first_input_date              date                  NOT NULL,
     last_input_date               date                  NOT NULL,
     last_output_date              date,
-    last_input_price              numeric(12, 2),
-    last_output_price             numeric(12, 2),
-    last_stop_loss                numeric(12, 2),
+    last_input_price              numeric(24, 2),
+    last_output_price             numeric(24, 2),
+    last_stop_loss                numeric(24, 2),
     UNIQUE (symbol, strategy_id, inputs, timeframe, is_long_position)
 );
 COMMENT ON TABLE public.ratios IS 'ratios to evaluate the performance of speculation/investment strategies';
