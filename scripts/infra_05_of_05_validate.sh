@@ -11,7 +11,7 @@ docker exec -it radar-postgres psql -U postgres -c "\l"
 docker exec -it radar-postgres psql -U postgres -d radar -c "\dt"
 
 # Check if the radar-core systemd services are enabled and active
-systemctl list-timers --all | grep radar-core || echo "radar-core.timer is not active."
+systemctl list-timers radar-core.timer
 
 # Force rotation of current log files (close them and create new ones)
 # journalctl: Query the systemd journal logs
@@ -22,8 +22,8 @@ sudo journalctl --vacuum-time=1s
 
 echo "Tip: You can monitor the logs in real-time in another terminal with: 'sudo journalctl -u radar-core.service -f'"
 
-# Start the radar-core service to generate new logs
+# Start the radar-core service to generate new logs (alternatively you can use 'restart')
 sudo systemctl start radar-core.service
 
-# Export the logs of the radar-core service to a specific file within the infrastructure log folder
+# After finishing, export the logs of the radar-core service to a specific file within the infrastructure log folder
 sudo journalctl -u radar-core.service --no-pager > /opt/radar/infra/logs/radar-core.log

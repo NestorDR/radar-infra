@@ -20,7 +20,10 @@ echo "[$(date)] Starting Radar-Core execution..."
 # || true: To ignore errors if the container doesn't exist.
 docker rm -f $CONTAINER_NAME 2>/dev/null || true
 
-# 2. Run the processing job
+# 2. Pull the latest image to ensure up-to-date execution
+docker pull $IMAGE
+
+# 3. Run the processing job
 # --rm .......: Automatically remove the container when it exits (resource cleanup).
 # --network ..: Connect to the existing persistent network created by docker-compose.
 # --shm-size .: Critical for Polars/Numba multiprocessing performance.

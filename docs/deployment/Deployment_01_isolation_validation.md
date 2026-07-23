@@ -423,7 +423,7 @@ Enable the timer to execute `radar-core` according to the schedule defined in `r
    # Start the timer immediately to schedule the execution of the radar-core service according to the defined schedule
    sudo systemctl start radar-core.timer
    # Verify the status of the timer to confirm it is active and scheduled correctly
-   systemctl list-timers --all | grep radar-core
+   systemctl list-timers radar-core.timer
    
    # Add user to the systemd-journal group to read system logs (journalctl) without using sudo
    # usermod: modifies an existing user
