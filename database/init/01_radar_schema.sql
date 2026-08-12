@@ -30,6 +30,9 @@ VALUES (1, 'SPX', 'S&P 500 Index', false, false),
 SELECT setval('public.securities_id_seq', COALESCE(MAX(id), 0) + 1, false)
 FROM public.securities;
 
+CREATE INDEX IF NOT EXISTS ix_securities_symbol
+    ON securities (symbol);
+
 -- Strategies
 CREATE TABLE IF NOT EXISTS public.strategies
 (
@@ -175,6 +178,9 @@ COMMENT ON COLUMN public.synonyms.id IS 'Internal unique identifier';
 COMMENT ON COLUMN public.synonyms.provider_id IS 'Quote provider identifier';
 COMMENT ON COLUMN public.synonyms.security_id IS 'Security identifier';
 COMMENT ON COLUMN public.synonyms.ticker IS 'Symbol ticker por the quote provider';
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_synonyms_security_provider
+    ON synonyms (security_id, provider_id);
 
 INSERT INTO public.synonyms (id, provider_id, security_id, ticker) OVERRIDING SYSTEM VALUE
 VALUES (1, 1, 1, '^GSPC'),
