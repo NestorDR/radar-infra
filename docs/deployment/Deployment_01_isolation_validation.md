@@ -414,7 +414,9 @@ Verify the creation of the `radar` and `metabase` databases within the PostgreSQ
 ### 5. Schedule the engine by enabling systemd `.service` and `.timer` files and validate execution logs via `journalctl`.
 
 #### 5.1. Schedule through systemd
-Enable the timer to execute `radar-core` according to the schedule defined in `radar-core.timer`.
+Enable `radar-core.timer` to execute the job daily at 01:30 New York time and,
+from Monday to Friday, every 30 minutes from 09:31 through 16:31, with an additional execution at 15:54.
+The timer definition is the operational source of truth for this schedule.
    ```bash
    # Notify systemd that service files have been added or modified
    sudo systemctl daemon-reload

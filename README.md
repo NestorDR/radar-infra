@@ -26,7 +26,7 @@ The repository is structured to separate code and configuration from ephemeral o
 - `docs/`: ADRs and infrastructure documentation.
 - `docker-compose.*.yml`: Environment-specific container definitions.
 - `scripts/`: Bash scripts (`.sh`) for automation on Linux servers (cleanup, configuration, execution, and validation).
-- `systemd/`: Service units and timers (`radar-core.service`, `radar-core.timer`) for orchestrating recurring executions.
+- `systemd/`: Service units and timers (`radar-core.service`, `radar-core.timer`) for orchestrating recurring executions. `radar-core.timer` runs daily at 01:30 New York time, plus Monday to Friday every 30 minutes from 09:31 through 16:31 and an additional run at 15:54.
 - `terraform/`: Declarative Infrastructure as Code (IaC) for Hetzner Cloud DNS records management.
 - `Caddyfile`: Reverse proxy routing configuration using dynamic environment variables.
 

@@ -9,10 +9,13 @@ Description=Timer for Radar Core (Mon-Fri, NY Time)
 [Timer]
 # NY Stock Market Hours (Eastern Time)
 # systemd handles 'America/New_York' natively including daylight saving.
+# Daily run at 01:30.
 OnCalendar=*-*-* 01:30:00 America/New_York
-OnCalendar=Mon..Fri *-*-* 09..14:31:00 America/New_York
-OnCalendar=Mon..Fri *-*-* 15:48:00 America/New_York
-OnCalendar=Mon..Fri *-*-* 16:20:00 America/New_York
+# Runs every 30 minutes from 09:31 through 16:31, Monday to Friday.
+OnCalendar=Mon..Fri *-*-* 09..16:31:00 America/New_York
+OnCalendar=Mon..Fri *-*-* 10..16:01:00 America/New_York
+# Additional run at 15:54, Monday to Friday.
+OnCalendar=Mon..Fri *-*-* 15:54:00 America/New_York
 
 # ---
 # Note: OVERLAP PREVENTION is built natively into systemd.
