@@ -24,12 +24,10 @@ COMMENT ON COLUMN public.securities.store_locally IS 'Flag indicating whether pr
 INSERT INTO public.securities (id, symbol, description, is_bear, store_locally) OVERRIDING SYSTEM VALUE
 VALUES (1, 'SPX', 'S&P 500 Index', false, false),
        (2, 'NDQ', 'NASDAQ 100 Index', false, false),
-       (3, 'GOLD', 'Gold USD', false, false),
-       (4, 'SILVER', 'Silver USD', false, false),
-       (5, 'USOIL', 'Crude Oil USD', false, false),
-       (6, 'NGAS', 'Natural Gas USD', false, false);
+       (3, 'GOLD', 'Gold USD', false, false);
 
-SELECT setval('public.securities_id_seq', COALESCE(MAX(id), 0) + 14, false)
+
+SELECT setval('public.securities_id_seq', COALESCE(MAX(id), 0) + 1, false)
 FROM public.securities;
 
 CREATE INDEX IF NOT EXISTS ix_securities_symbol
@@ -102,6 +100,7 @@ CREATE TABLE IF NOT EXISTS public.ratios
     to_date                      date                  NOT NULL,
     initial_price                numeric(24, 2)        NOT NULL,
     final_price                  numeric(24, 2)        NOT NULL,
+    current_indicators           character varying(50),
     net_change                   real                  NOT NULL,
     signals                      smallint              NOT NULL,
     winnings                     real                  NOT NULL,
@@ -138,6 +137,7 @@ COMMENT ON COLUMN public.ratios.from_date IS 'Indicates the date from which the 
 COMMENT ON COLUMN public.ratios.to_date IS 'Indicates the date up to which the strategy was tested to identify results and ratios.';
 COMMENT ON COLUMN public.ratios.initial_price IS 'Initial price of the period in which the strategy was tested';
 COMMENT ON COLUMN public.ratios.final_price IS 'Final price of the period in which the strategy was tested';
+COMMENT ON COLUMN public.ratios.current_indicators IS 'Current indicator value or values associated with the evaluated strategy';
 COMMENT ON COLUMN public.ratios.net_change IS 'Percentage change of the final price over the initial price';
 COMMENT ON COLUMN public.ratios.signals IS 'Number of trade signals identified by the strategy';
 COMMENT ON COLUMN public.ratios.winnings IS 'Total gain on positive/winning operations';
@@ -187,10 +187,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_synonyms_security_provider
 INSERT INTO public.synonyms (id, provider_id, security_id, ticker) OVERRIDING SYSTEM VALUE
 VALUES (1, 1, 1, '^GSPC'),
        (2, 1, 2, '^NDX'),
-       (3, 1, 3, 'GC=F'),
-       (4, 1, 4, 'SI=F'),
-       (5, 1, 5, 'CL=F'),
-       (6, 1, 6, 'NG=F');
+       (3, 1, 3, 'GC=F');
 
 SELECT setval('public.synonyms_id_seq', COALESCE(MAX(id), 0) + 1, false)
 FROM public.synonyms;

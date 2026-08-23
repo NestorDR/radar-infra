@@ -30,7 +30,10 @@ WITH ratios_cte AS (
                ELSE
                    -- Strategy does not contain '(14)'
                    REPLACE(TRIM(BOTH '{}' FROM ratios.inputs), '"', '')
-               END                                                AS inputs_clean
+               END                                                AS inputs_clean,
+           REPLACE(TRIM(BOTH '{}' FROM ratios.current_indicators), '"', '')
+                                                                  AS indicators_clean
+
     FROM public.ratios
              INNER JOIN public.securities ON securities.symbol = ratios.symbol
              INNER JOIN public.strategies ON strategies.id = ratios.strategy_id)
@@ -68,6 +71,7 @@ SELECT ratios_cte.id                                     AS "Ratio ID",
              4)                                          AS "NP per Day",
        ROUND(ratios_cte.win_probability::numeric, 4)     AS "Gain Prob",
        ratios_cte.final_price                            AS "Last Price",
+       ratios_cte.indicators_clean                       AS "Indicators",
        ROUND(ratios_cte.net_change::numeric, 2)          AS "Net Change",
        ROUND(ratios_cte.net_profit::numeric, 2)          AS "Net Profit",
        ROUND(((ratios_cte.net_profit - ratios_cte.net_change) / ABS(ratios_cte.net_change))::numeric,

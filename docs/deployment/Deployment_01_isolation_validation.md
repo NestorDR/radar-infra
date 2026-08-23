@@ -413,6 +413,8 @@ Verify the creation of the `radar` and `metabase` databases within the PostgreSQ
 
 ### 5. Schedule the engine by enabling systemd `.service` and `.timer` files and validate execution logs via `journalctl`.
 
+The application writes log messages, and `systemd-journald` stores them in **journal files**. They're called journal files because systemd-journald doesn't store messages as simple, traditional text files. It stores them in a journal, that is, a structured record managed by journald daemon.
+ 
 #### 5.1. Schedule through systemd
 Enable `radar-core.timer` to execute the job daily at 01:30 New York time and,
 from Monday to Friday, every 30 minutes from 09:31 through 16:31, with an additional execution at 15:54.
