@@ -13,7 +13,7 @@ CD /D "!SCRIPT_DIR!..!"
 
 :: --- Configuration Section ---
 :: Set pg_dump executable
-SET PG_DUMP_PATH="%PROGRAMFILES%\PostgreSQL\17\bin\pg_dump.exe"
+SET PG_DUMP_PATH="%PROGRAMFILES%\PostgreSQL\18\bin\pg_dump.exe"
 :: DB parameters - Align these with your .env.dev if possible
 SET DB_HOST=localhost
 SET DB_PORT=5432

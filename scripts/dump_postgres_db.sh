@@ -39,16 +39,20 @@ fi
 echo "--- Starting granular logical backup sequence for database: $TARGET_DB ---"
 
 # Extract the database superuser username directly from the environment file
-echo "[1/3] Parsing connection credentials from environment configuration..."
+echo "[1/4] Parsing connection credentials from environment configuration..."
 DB_USER=$(grep -E "^POSTGRES_USER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '\r')
 
+# Reclaim dead tuples before generating the backup.
+echo "[2/4] Reclaiming dead space from '$TARGET_DB'..."
+docker exec -t "$CONTAINER_NAME" vacuumdb -U "$DB_USER" -f -d "$TARGET_DB"
+
 # Execute pg_dump targeting only the specified database name
-echo "[2/3] Extracting schema and records for '$TARGET_DB' from container..."
+echo "[3/4] Extracting schema and records for '$TARGET_DB' from container..."
 docker exec -t "$CONTAINER_NAME" pg_dump -U "$DB_USER" "$TARGET_DB" > "$DESTINATION_FILE"
 
 # Validate that the backup file was successfully created and is not empty
 if [ -s "$DESTINATION_FILE" ]; then
-    echo "[3/3] Sychronizing write buffers..."
+    echo "[4/4] Synchronizing write buffers..."
     echo "--- Backup complete. Granular file saved to: $DESTINATION_FILE ---"
 else
     echo "Error: Granular backup failed for database '$TARGET_DB'. File is empty or corrupted."
