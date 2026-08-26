@@ -3,6 +3,8 @@
 -- Connect to the database defined in the environment or created by previous scripts
 \connect radar
 
+-- DROP VIEW IF EXISTS public.ratios_dashboard;
+
 -- Ratios Dashboard: view for BI
 CREATE OR REPLACE VIEW public.ratios_dashboard AS
 WITH ratios_cte AS (

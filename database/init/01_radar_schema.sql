@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS public.ratios
     to_date                      date                  NOT NULL,
     initial_price                numeric(24, 2)        NOT NULL,
     final_price                  numeric(24, 2)        NOT NULL,
-    current_indicators           character varying(50),
+    current_indicators           text,
     net_change                   real                  NOT NULL,
     signals                      smallint              NOT NULL,
     winnings                     real                  NOT NULL,
