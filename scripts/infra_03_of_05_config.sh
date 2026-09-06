@@ -41,7 +41,15 @@ sudo find /opt/radar -path /opt/radar/infra/database/data -prune -o -type d -exe
 # chmod: Applies standard read/write permissions
 # 644 (rw-r--r--): owner (1*4.read + 1*2.write + 0*1.execute) = 6, group (1*4.read + 0*2.write + 0*1.execute) = 4, others (1*4.read + 0*2.write + 0*1.execute) = 4
 sudo find /opt/radar -path /opt/radar/infra/database/data -prune -o -type f -exec chmod 644 {} +
-# OLD: find /opt/radar -type f -exec chmod 644 {} +
+
+ # Price cache ownership:
+ # Assign ownership of the cache directory to the non-root container user (UID 1001: default)
+ #  so radar-core can persist Parquet data and JSON metadata across container executions.
+ # chown: changes the ownership of a file or directory
+ # -R (recursive): to apply to all directories and files within the directory
+ # 1001:1001: assigns ownership to the UID/GID 1001 = non-root user 'default' inside radar-core container
+ # /opt/radar/infra/cache: directory path to modify
+ sudo chown -R 1001:1001 /opt/radar/infra/cache
 
 echo "[3/6] Hardening secrets..."
 # For sensitive files, such as environment variables, apply stricter permissions to prevent unauthorized access.
