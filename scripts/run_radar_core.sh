@@ -37,6 +37,7 @@ docker run --rm \
     --shm-size 2gb \
     --log-driver=journald \
     -v /opt/radar/infra/config/settings.yml:/home/default/app/settings.yml:ro \
+    -v /opt/radar/infra/cache:/home/default/app/cache \
     "$IMAGE"
 
 echo "[$(date)] Radar-Core execution finished successfully."

@@ -263,6 +263,7 @@ Create the folder structure to support Docker containers.
    # mkdir: creates a directory
    # -p (parents): creates the directory and any necessary parent directories
    # /opt/radar/infra/*: path of the directory to create
+   sudo mkdir -p /opt/radar/infra/cache
    sudo mkdir -p /opt/radar/infra/config
    sudo mkdir -p /opt/radar/infra/database/init
    sudo mkdir -p /opt/radar/infra/database/data
@@ -334,6 +335,15 @@ On the VM assign ownership and permissions to the copied files so the system fun
    # chmod: applies read/write permissions only for the owner
    # 600 (rw-------): owner (1*4.read + 1*2.write + 0*1.execute) = 6, group (0*4.read + 0*2.write + 0*1.execute) = 0, others (0*4.read + 0*2.write + 0*1.execute) = 0
    find /opt/radar -name ".env*" -exec chmod 600 {} +
+
+   # Price cache ownership:
+   # Assign ownership of the cache directory to the non-root container user (UID 1001: default)
+   # so radar-core can persist Parquet data and JSON metadata across container executions.
+   # chown: changes the ownership of a file or directory
+   # -R (recursive): to apply to all directories and files within the directory
+   # 1001:1001: assigns ownership to the UID 1001 = non-root user 'default' inside radar-core container
+   # /opt/radar/infra/cache: directory path to modify
+   sudo chown -R 1001:1001 /opt/radar/infra/cache
 
    # When executing 'docker compose up', Docker will give the necessary access to Postgres to the '/opt/radar/infra/database/data' folder.
    # The only thing Postgres requires is that the 'data' folder is EMPTY the first time or that it has write permissions for the container.
