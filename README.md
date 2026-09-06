@@ -11,6 +11,7 @@ The fully operational results can be visited for public use:
 - **Database Provisioning**: Automated initialization scripts (`.sql` and `.sh`) for PostgreSQL, including schema creation, views, and Metabase restoration.
 - **Environment Management**: Templated environment variables for Development (`dev`), End-to-End testing (`e2e`), and Production (`prod`).
 - **Container Orchestration**: Docker Compose configurations tailored for different stages (`docker-compose.dev.yml`, `docker-compose.e2e.yml`, `docker-compose.prod.yml`).
+- **Persistent Price Caching Volume**: Dedicated host storage (`/opt/radar/infra/cache`) mounted into `radar-core` with container non-root ownership (`1001:1001`), allowing the engine to persist Parquet OHLCV snapshots and metadata across batch runs.
 - **Secure Gateway & Reverse Proxy**: Caddy server acting as the edge reverse proxy with automatic SSL/TLS via Let's Encrypt / ZeroSSL, securing public web traffic on ports `80` and `443`.
 - **Declarative DNS (IaC)**: Autoritative Dual-Stack (A and AAAA records) DNS zone management using Terraform for the subdomain `radar`.
 - **Automation Scripts**: Helper scripts (`auto/dc.cmd`, `auto/dump_mb_db.cmd`) to streamline Docker operations and database backups, along with Bash scripts for automated provisioning, remote backups, and deployment on Linux servers.
@@ -53,11 +54,35 @@ The repository is structured to separate code and configuration from ephemeral o
    The `database/init/` directory contains scripts (e.g., `00_init_dbs.sh`, `01_radar_schema.sql`, `03_metabase_restore.sql`, `04_patch_metabase.sh`) that Docker automatically executes when the PostgreSQL container is first created.
 
 ## Architecture & Production State
-As documented in the Architecture Decision Records [ADR-001.production_deployment_scheduling.md](docs/adr/ADR-001.production_deployment_scheduling.md) and [ADR-002.production_deployment_on_x86_&_debian.md](docs/adr/ADR-002.production_deployment_on_x86_%26_debian.md), `radar-core` is deployed to a production environment on an **x86_64** VM with **Debian 13 (Trixie)** hosted on Hetzner Cloud.
+The infrastructure follows a decoupled, security-hardened four-tier architecture deployed to an **x86_64** VM with **Debian 13 (Trixie)** on Hetzner Cloud:
 
-The persistent services, **PostgreSQL and Metabase**, run continuously under Docker Compose. Using a one-time execution approach, the ephemeral financial strategy analyzer (`radar-core`) runs as a decoupled, periodic batch container controlled by `systemd timer + service`, freeing resources upon completion.
+1. **Public Edge & Ingress Layer**: Hetzner Cloud DNS managed declaratively via Terraform, UFW firewall, and Caddy edge reverse proxy with automatic SSL/TLS termination.
+2. **Persistent Services Layer**: PostgreSQL 17 and Metabase running continuously 24/7 under Docker Compose on an isolated internal bridge network (`radar-network`).
+3. **Decoupled Ephemeral Calculation Layer**: Periodic batch financial processing container (`radar-core`) orchestrated via `systemd` timer and service units, with persistent price cache and configuration mounts.
+4. **Host Observability Layer**: Centralized journald logging for ephemeral engine runs and UFW host port isolation.
 
-Secure public exposure is resolved natively on the server using [Caddy](https://caddyserver.com/docs/quick-starts/reverse-proxy) as the edge reverse proxy, mapping requests to the internal Metabase container without host loopback port leakage, while the DNS authoritative resolution is declaratively managed via Terraform.
+```mermaid
+flowchart TD
+    subgraph Ingress ["Public Edge & Ingress"]
+        Client["Web Clients"] -->|HTTPS :443| Caddy["Caddy Reverse Proxy<br>(Auto-TLS / radar.ndromero.com)"]
+    end
+
+    subgraph Compose ["Persistent Services (Docker Compose)"]
+        Caddy -->|Proxy HTTP| Metabase["Metabase Dashboard<br>(radar-metabase)"]
+        Metabase -->|Internal :5432| Postgres[("PostgreSQL 17 Database<br>(radar-postgres)")]
+    end
+
+    subgraph Batch ["Decoupled Batch Engine (Systemd)"]
+        Timer["Systemd Timer<br>(NY Market Hours)"] -->|Trigger| RadarCore["Radar Core Engine<br>(Ephemeral Container)"]
+        Cache[("Local Price Cache<br>(Parquet / opt/radar/infra/cache)")] <-->|Mount| RadarCore
+        RadarCore -->|Persist Ratios| Postgres
+        RadarCore -->|Logs| JournalD["Host JournalD"]
+    end
+```
+
+As documented in the Architecture Decision Records [ADR-001.production_deployment_scheduling.md](docs/adr/ADR-001.production_deployment_scheduling.md) and [ADR-002.production_deployment_on_x86_&_debian.md](docs/adr/ADR-002.production_deployment_on_x86_%26_debian.md), the persistent services (**PostgreSQL and Metabase**) run continuously under Docker Compose, while the ephemeral calculation engine (`radar-core`) executes as a decoupled, periodic batch job controlled by `systemd timer + service`, freeing resources upon completion.
+
+Secure public exposure is resolved natively on the server using [Caddy](https://caddyserver.com/docs/quick-starts/reverse-proxy) as the edge reverse proxy, routing traffic to the internal Metabase container without exposing host loopback ports, while DNS resolution is declaratively managed via Terraform.
 
 For a detailed step-by-step guide on how the architecture was provisioned and exposed, see [Deployment_01_isolation_validation.md](docs/deployment/Deployment_01_isolation_validation.md) and [Deployment_02_secure_exposure.md](docs/deployment/Deployment_02_secure_exposure.md).
 
