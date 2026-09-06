@@ -341,7 +341,7 @@ On the VM assign ownership and permissions to the copied files so the system fun
    # so radar-core can persist Parquet data and JSON metadata across container executions.
    # chown: changes the ownership of a file or directory
    # -R (recursive): to apply to all directories and files within the directory
-   # 1001:1001: assigns ownership to the UID 1001 = non-root user 'default' inside radar-core container
+   # 1001:1001: assigns ownership to the UID/GID 1001 = non-root user 'default' inside radar-core container
    # /opt/radar/infra/cache: directory path to modify
    sudo chown -R 1001:1001 /opt/radar/infra/cache
 
