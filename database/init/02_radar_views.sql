@@ -3,9 +3,9 @@
 -- Connect to the database defined in the environment or created by previous scripts
 \connect radar
 
--- DROP VIEW IF EXISTS public.ratios_dashboard;
+DROP VIEW IF EXISTS public.ratios_dashboard;
 
--- Ratios Dashboard: view for BI
+-- Ratio Dashboard: view for BI
 CREATE OR REPLACE VIEW public.ratios_dashboard AS
 WITH ratios_cte AS (
     -- CTE (Common Table Expression)
@@ -13,6 +13,7 @@ WITH ratios_cte AS (
            securities.description                                 AS security_description,
            strategies.acronym                                     AS strategy_acronym,
            securities.is_bear                                     AS security_is_bear,
+           securities.is_crypto                                   AS security_is_crypto,
            CASE ratios.timeframe
                WHEN 3 THEN ratios.last_input_date + ((12 - EXTRACT(dow FROM ratios.last_input_date)::int) % 7)::int
                ELSE ratios.last_input_date
@@ -41,6 +42,7 @@ WITH ratios_cte AS (
              INNER JOIN public.strategies ON strategies.id = ratios.strategy_id)
 SELECT ratios_cte.id                                     AS "Ratio ID",
        ratios_cte.symbol                                 AS "Symbol",
+       ratios_cte.security_is_crypto                     AS "Is Crypto",
        ratios_cte.strategy_acronym                       AS "Strategy",
        ratios_cte.inputs_clean                           AS "Inputs",
        CASE

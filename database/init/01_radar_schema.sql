@@ -8,26 +8,32 @@
 -- Securities
 CREATE TABLE IF NOT EXISTS public.securities
 (
-    id            integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    symbol        character varying(10)  NOT NULL UNIQUE,
-    description   character varying(100) NOT NULL,
-    is_bear       boolean DEFAULT false  NOT NULL,
-    store_locally boolean DEFAULT false  NOT NULL
+    id                 integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    symbol             character varying(10)  NOT NULL UNIQUE,
+    description        character varying(100) NOT NULL,
+    is_bear            boolean DEFAULT false  NOT NULL,
+    is_shortable       boolean DEFAULT false  NOT NULL,
+    is_crypto          boolean DEFAULT false  NOT NULL,
+    is_near_continuous boolean DEFAULT false  NOT NULL,
+    store_locally      boolean DEFAULT false  NOT NULL
 );
 COMMENT ON TABLE public.securities IS 'Marketable financial instruments';
 COMMENT ON COLUMN public.securities.id IS 'Internal unique identifier';
 COMMENT ON COLUMN public.securities.symbol IS 'Acronym identifier of the financial instrument';
 COMMENT ON COLUMN public.securities.description IS 'Description of the financial instrument';
 COMMENT ON COLUMN public.securities.is_bear IS 'Flag indicating that its price increases during bear markets';
+COMMENT ON COLUMN public.securities.is_shortable IS 'Flag indicating whether short positions are evaluated for this instrument';
+COMMENT ON COLUMN public.securities.is_crypto IS 'Flag indicating whether the instrument is a cryptocurrency';
+COMMENT ON COLUMN public.securities.is_near_continuous IS 'Flag indicating assets operating near-continuously (24x5 or 24x7 like Commodities, Futures or Bitcoin)';
 COMMENT ON COLUMN public.securities.store_locally IS 'Flag indicating whether prices obtained from the cloud should be saved in the database';
 
-INSERT INTO public.securities (id, symbol, description, is_bear, store_locally) OVERRIDING SYSTEM VALUE
-VALUES (1, 'SPX', 'S&P 500 Index', false, false),
-       (2, 'NDQ', 'NASDAQ 100 Index', false, false),
-       (3, 'GOLD', 'Gold USD', false, false),
-       (4, 'SILVER', 'Silver USD', false, false),
-       (5, 'USOIL', 'Crude Oil USD', false, false),
-       (6, 'NGAS', 'Natural Gas USD', false, false);
+INSERT INTO public.securities (id, symbol, description, is_bear, is_shortable, is_crypto, is_near_continuous, store_locally) OVERRIDING SYSTEM VALUE
+VALUES (1, 'SPX', 'S&P 500 Index', false, false, false, false, false),
+       (2, 'NDQ', 'NASDAQ 100 Index', false, false, false, false, false),
+       (3, 'GOLD', 'Gold USD', false, true, false, true, false),
+       (4, 'SILVER', 'Silver USD', false, true, false, true, false),
+       (5, 'USOIL', 'Crude Oil USD', false, true, false, true, false),
+       (6, 'NGAS', 'Natural Gas USD', false, true, false, true, false);
 
 SELECT setval('public.securities_id_seq', COALESCE(MAX(id), 0) + 14, false)
 FROM public.securities;
@@ -113,8 +119,6 @@ CREATE TABLE IF NOT EXISTS public.ratios
     loss_probability             real                  NOT NULL,
     average_win                  real                  NOT NULL,
     average_loss                 real                  NOT NULL,
-    min_percentage_change_to_win numeric(6, 2)         NOT NULL,
-    max_percentage_change_to_win numeric(6, 2)         NOT NULL,
     total_sessions               smallint              NOT NULL,
     winning_sessions             smallint              NOT NULL,
     losing_sessions              smallint              NOT NULL,
@@ -150,8 +154,6 @@ COMMENT ON COLUMN public.ratios.win_probability IS 'Percentage of positive/winni
 COMMENT ON COLUMN public.ratios.loss_probability IS 'Percentage of negative/losing operations';
 COMMENT ON COLUMN public.ratios.average_win IS 'Average profit of the positive/winning operations';
 COMMENT ON COLUMN public.ratios.average_loss IS 'Average loss of the negative/losing operations';
-COMMENT ON COLUMN public.ratios.min_percentage_change_to_win IS 'Minimum percentage change of input sessions for the positive/winning operations';
-COMMENT ON COLUMN public.ratios.max_percentage_change_to_win IS 'Maximum percentage change of input sessions for the positive/winning operations';
 COMMENT ON COLUMN public.ratios.total_sessions IS 'Total number of sessions to which the strategy has been evaluated';
 COMMENT ON COLUMN public.ratios.winning_sessions IS 'Number of sessions spent/elapsed during positive/winning operations';
 COMMENT ON COLUMN public.ratios.losing_sessions IS 'Number of sessions spent/elapsed during negative/losing operations';
