@@ -23,7 +23,7 @@ COMMENT ON COLUMN public.securities.symbol IS 'Acronym identifier of the financi
 COMMENT ON COLUMN public.securities.description IS 'Description of the financial instrument';
 COMMENT ON COLUMN public.securities.is_bear IS 'Flag indicating that its price increases during bear markets';
 COMMENT ON COLUMN public.securities.is_shortable IS 'Flag indicating whether short positions are evaluated for this instrument';
-COMMENT ON COLUMN public.securities.is_crypto IS 'Flag indicating whether the instrument is a cryptocurrency';
+COMMENT ON COLUMN public.securities.is_crypto IS 'Flag indicating whether the instrument is related to a cryptocurrency';
 COMMENT ON COLUMN public.securities.is_near_continuous IS 'Flag indicating assets operating near-continuously (24x5 or 24x7 like Commodities, Futures or Bitcoin)';
 COMMENT ON COLUMN public.securities.store_locally IS 'Flag indicating whether prices obtained from the cloud should be saved in the database';
 
@@ -114,11 +114,11 @@ CREATE TABLE IF NOT EXISTS public.ratios
     winnings                     real                  NOT NULL,
     losses                       real                  NOT NULL,
     net_profit                   real                  NOT NULL,
-    expected_value               real                  NOT NULL,
+    expected_percentage          real                  NOT NULL,
     win_probability              real                  NOT NULL,
     loss_probability             real                  NOT NULL,
-    average_win                  real                  NOT NULL,
-    average_loss                 real                  NOT NULL,
+    average_win_percentage       real                  NOT NULL,
+    average_loss_percentage      real                  NOT NULL,
     total_sessions               smallint              NOT NULL,
     winning_sessions             smallint              NOT NULL,
     losing_sessions              smallint              NOT NULL,
@@ -149,11 +149,11 @@ COMMENT ON COLUMN public.ratios.signals IS 'Number of trade signals identified b
 COMMENT ON COLUMN public.ratios.winnings IS 'Total gain on positive/winning operations';
 COMMENT ON COLUMN public.ratios.losses IS 'Total loss on negative/losing operations.';
 COMMENT ON COLUMN public.ratios.net_profit IS 'Percentage of net profit got following the input and output signals. Formula: (winnings_ - losses_) / initial_price';
-COMMENT ON COLUMN public.ratios.expected_value IS 'Mathematical expectation of the strategy. Formula: (win_probability * average_win) + (loss_probability * average_loss).';
+COMMENT ON COLUMN public.ratios.expected_percentage IS 'Mathematical expectation of the strategy. Formula: (win_probability * average_win_percentage) + (loss_probability * average_loss_percentage).';
 COMMENT ON COLUMN public.ratios.win_probability IS 'Percentage of positive/winning operations';
 COMMENT ON COLUMN public.ratios.loss_probability IS 'Percentage of negative/losing operations';
-COMMENT ON COLUMN public.ratios.average_win IS 'Average profit of the positive/winning operations';
-COMMENT ON COLUMN public.ratios.average_loss IS 'Average loss of the negative/losing operations';
+COMMENT ON COLUMN public.ratios.average_win_percentage IS 'Average profit percentage of the positive/winning trades';
+COMMENT ON COLUMN public.ratios.average_loss_percentage IS 'Average loss percentage of the negative/losing trades';
 COMMENT ON COLUMN public.ratios.total_sessions IS 'Total number of sessions to which the strategy has been evaluated';
 COMMENT ON COLUMN public.ratios.winning_sessions IS 'Number of sessions spent/elapsed during positive/winning operations';
 COMMENT ON COLUMN public.ratios.losing_sessions IS 'Number of sessions spent/elapsed during negative/losing operations';
