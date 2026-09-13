@@ -40,60 +40,60 @@ WITH ratios_cte AS (
     FROM public.ratios
              INNER JOIN public.securities ON securities.symbol = ratios.symbol
              INNER JOIN public.strategies ON strategies.id = ratios.strategy_id)
-SELECT ratios_cte.id                                     AS "Ratio ID",
-       ratios_cte.symbol                                 AS "Symbol",
-       ratios_cte.security_is_crypto                     AS "Is Crypto",
-       ratios_cte.strategy_acronym                       AS "Strategy",
-       ratios_cte.inputs_clean                           AS "Inputs",
+SELECT ratios_cte.id                                         AS "Ratio ID",
+       ratios_cte.symbol                                     AS "Symbol",
+       ratios_cte.security_is_crypto                         AS "Is Crypto",
+       ratios_cte.strategy_acronym                           AS "Strategy",
+       ratios_cte.inputs_clean                               AS "Inputs",
        CASE
            WHEN ratios_cte.security_is_bear THEN
                CASE ratios_cte.is_long_position WHEN TRUE THEN 'Bear' ELSE 'Bull' END
            ELSE
                CASE ratios_cte.is_long_position WHEN TRUE THEN 'Bull' ELSE 'Bear' END
-           END                                           AS "Market",
+           END                                               AS "Market",
        CASE ratios_cte.is_long_position
            WHEN TRUE THEN 'Buy'
            ELSE 'Sell'
-           END                                           AS "Recommendation",
+           END                                               AS "Recommendation",
        CASE ratios_cte.timeframe
            WHEN 1 THEN 'Intra'
            WHEN 2 THEN 'Day'
            WHEN 3 THEN 'Week'
            WHEN 4 THEN 'Month'
            ELSE '???'
-           END                                           AS "Frame",
-       ratios_cte.input_date                             AS "Input Date",
-       ratios_cte.last_input_price                       AS "Input Price",
-       ratios_cte.last_stop_loss                         AS "Stop Loss",
-       ratios_cte.last_output_price                      AS "Output Price",
-       ratios_cte.output_date                            AS "Output Date",
+           END                                               AS "Frame",
+       ratios_cte.input_date                                 AS "Input Date",
+       ratios_cte.last_input_price                           AS "Input Price",
+       ratios_cte.last_stop_loss                             AS "Stop Loss",
+       ratios_cte.last_output_price                          AS "Output Price",
+       ratios_cte.output_date                                AS "Output Date",
        ROUND(CASE ratios_cte.is_long_position
                  WHEN TRUE THEN (ratios_cte.output_price - ratios_cte.last_input_price) / ratios_cte.last_input_price
                  ELSE (ratios_cte.last_input_price - ratios_cte.output_price) / ratios_cte.last_input_price
-                 END::numeric, 4)                        AS "Last result",
+                 END::numeric, 4)                            AS "Last result",
        ROUND((ratios_cte.net_profit / (CURRENT_DATE - ratios_cte.from_date))::numeric,
-             4)                                          AS "NP per Day",
-       ROUND(ratios_cte.win_probability::numeric, 4)     AS "Gain Prob",
-       ratios_cte.final_price                            AS "Last Price",
-       ratios_cte.indicators_clean                       AS "Indicators",
-       ROUND(ratios_cte.net_change::numeric, 2)          AS "Net Change",
-       ROUND(ratios_cte.net_profit::numeric, 2)          AS "Net Profit",
+             4)                                              AS "NP per Day",
+       ROUND(ratios_cte.win_probability::numeric, 4)         AS "Gain Prob",
+       ratios_cte.final_price                                AS "Last Price",
+       ratios_cte.indicators_clean                           AS "Indicators",
+       ROUND(ratios_cte.net_change::numeric, 2)              AS "Net Change",
+       ROUND(ratios_cte.net_profit::numeric, 2)              AS "Net Profit",
        ROUND(((ratios_cte.net_profit - ratios_cte.net_change) / ABS(ratios_cte.net_change))::numeric,
-             2)                                          AS "Profit vs Change",
-       ratios_cte.signals                                AS "Signals",
-       ratios_cte.from_date                              AS "From Date",
-       ratios_cte.to_date                                AS "To Date",
-       ratios_cte.initial_price                          AS "Initial Price",
-       ROUND(ratios_cte.winnings::numeric, 2)            AS "Gains",
-       ROUND(ratios_cte.losses::numeric, 2)              AS "Losses",
-       ROUND(ratios_cte.expected_percentage::numeric, 4)     AS "Expected Value",
+             2)                                              AS "Profit vs Change",
+       ratios_cte.signals                                    AS "Signals",
+       ratios_cte.from_date                                  AS "From Date",
+       ratios_cte.to_date                                    AS "To Date",
+       ratios_cte.initial_price                              AS "Initial Price",
+       ROUND(ratios_cte.winnings::numeric, 2)                AS "Gains",
+       ROUND(ratios_cte.losses::numeric, 2)                  AS "Losses",
+       ROUND(ratios_cte.expected_percentage::numeric, 4)     AS "Expected %",
        ROUND(ratios_cte.loss_probability::numeric, 4)        AS "Loss Prob",
        ROUND(ratios_cte.average_win_percentage::numeric, 4)  AS "Average Gain",
        ROUND(ratios_cte.average_loss_percentage::numeric, 4) AS "Average Loss",
        ROUND(ABS(ratios_cte.average_win_percentage / NULLIF(ratios_cte.average_loss_percentage, 0))::numeric, 2)
                                                              AS "Payoff Ratio",
        ratios_cte.total_sessions                             AS "Total Sessions",
-       ratios_cte.winning_sessions                       AS "Gains Sessions",
-       ratios_cte.losing_sessions                        AS "Losses Sessions",
-       ROUND(ratios_cte.percentage_exposure::numeric, 4) AS "% Exposure"
+       ratios_cte.winning_sessions                           AS "Gains Sessions",
+       ratios_cte.losing_sessions                            AS "Losses Sessions",
+       ROUND(ratios_cte.percentage_exposure::numeric, 4)     AS "% Exposure"
 FROM ratios_cte;
