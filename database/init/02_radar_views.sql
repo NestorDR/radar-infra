@@ -42,7 +42,6 @@ WITH ratios_cte AS (
              INNER JOIN public.strategies ON strategies.id = ratios.strategy_id)
 SELECT ratios_cte.id                                         AS "Ratio ID",
        ratios_cte.symbol                                     AS "Symbol",
-       ratios_cte.security_is_crypto                         AS "Is Crypto",
        ratios_cte.strategy_acronym                           AS "Strategy",
        ratios_cte.inputs_clean                               AS "Inputs",
        CASE
@@ -84,16 +83,12 @@ SELECT ratios_cte.id                                         AS "Ratio ID",
        ratios_cte.from_date                                  AS "From Date",
        ratios_cte.to_date                                    AS "To Date",
        ratios_cte.initial_price                              AS "Initial Price",
-       ROUND(ratios_cte.winnings::numeric, 2)                AS "Gains",
-       ROUND(ratios_cte.losses::numeric, 2)                  AS "Losses",
        ROUND(ratios_cte.expected_percentage::numeric, 4)     AS "Expected %",
        ROUND(ratios_cte.loss_probability::numeric, 4)        AS "Loss Prob",
        ROUND(ratios_cte.average_win_percentage::numeric, 4)  AS "Average Gain",
        ROUND(ratios_cte.average_loss_percentage::numeric, 4) AS "Average Loss",
        ROUND(ABS(ratios_cte.average_win_percentage / NULLIF(ratios_cte.average_loss_percentage, 0))::numeric, 2)
                                                              AS "Payoff Ratio",
-       ratios_cte.total_sessions                             AS "Total Sessions",
-       ratios_cte.winning_sessions                           AS "Gains Sessions",
-       ratios_cte.losing_sessions                            AS "Losses Sessions",
-       ROUND(ratios_cte.percentage_exposure::numeric, 4)     AS "% Exposure"
+       ROUND(ratios_cte.percentage_exposure::numeric, 4)     AS "% Exposure",
+       ratios_cte.security_is_crypto                         AS "Is Crypto"
 FROM ratios_cte;
