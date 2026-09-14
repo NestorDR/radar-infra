@@ -7,7 +7,8 @@ SELECT relname                                       AS table_name,
        pg_size_pretty(pg_relation_size(relid))       AS table_size,
        pg_size_pretty(pg_indexes_size(relid))        AS index_size
 FROM pg_catalog.pg_statio_user_tables
-ORDER BY pg_total_relation_size(relid) DESC;
+ORDER BY pg_total_relation_size(relid) DESC
+LIMIT 20;
 
 
 
@@ -18,6 +19,9 @@ ORDER BY pg_total_relation_size(relid) DESC;
 -- =============================================================================
 
 BEGIN;
+
+-- Bound lock acquisition so active Metabase work causes a safe failure instead of an indefinite wait.
+SET LOCAL lock_timeout = '5s';
 
 TRUNCATE TABLE
     -- 2.1. Queries, Cache, and Field Telemetry
@@ -69,4 +73,5 @@ VACUUM (ANALYZE);
 --   • Best for: Scheduled maintenance windows after massive DELETE operations.
 --              (Never needed after TRUNCATE, as TRUNCATE already freed disk space).
 -- =============================================================================
-VACUUM FULL;
+-- The blocking VACUUM FULL command is intentionally disabled for the routine maintenance path.
+-- VACUUM FULL;

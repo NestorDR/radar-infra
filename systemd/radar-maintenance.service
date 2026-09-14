@@ -1,0 +1,24 @@
+# systemd/radar-maintenance.service
+
+# Define the guarded host-side maintenance workflow as an independently managed system service.
+[Unit]
+Description=Radar Daily VPS Maintenance
+After=docker.service
+Requires=docker.service
+
+[Service]
+# oneshot: Run the ordered maintenance workflow once and report its result to systemd.
+Type=oneshot
+# Root access is required for the host lock, Docker pruning, tmpfiles cleanup, and journal retention.
+User=root
+WorkingDirectory=/opt/radar/infra
+# Execute the coordinator that performs preflight, database cleanup, and safe host maintenance.
+ExecStart=/opt/radar/infra/scripts/radar_maintenance.sh
+
+# Bound the complete maintenance run so a stalled Docker or database operation cannot run indefinitely.
+TimeoutStartSec=3600
+
+# Keep failures available through journalctl without automatically repeating destructive maintenance.
+Restart=no
+StandardOutput=journal
+StandardError=journal

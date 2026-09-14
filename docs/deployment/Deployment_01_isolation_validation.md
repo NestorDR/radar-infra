@@ -265,8 +265,9 @@ Create the folder structure to support Docker containers.
    # /opt/radar/infra/*: path of the directory to create
    sudo mkdir -p /opt/radar/infra/cache
    sudo mkdir -p /opt/radar/infra/config
-   sudo mkdir -p /opt/radar/infra/database/init
    sudo mkdir -p /opt/radar/infra/database/data
+   sudo mkdir -p /opt/radar/infra/database/init
+   sudo mkdir -p /opt/radar/infra/database/maintenance
    sudo mkdir -p /opt/radar/infra/envs
    sudo mkdir -p /opt/radar/infra/logs
    sudo mkdir -p /opt/radar/infra/scripts
@@ -289,6 +290,7 @@ From the **local machine** copy the files to the **VPS** using `scp`:
    scp -i $home\.ssh\radar_ed25519 docker-compose.prod.yml radar-admin@<SERVER_IP>:/opt/radar/infra
    scp -i $home\.ssh\radar_ed25519 ../radar-core/src/radar_core/settings.dev.yml radar-admin@<SERVER_IP>:/opt/radar/infra/config/settings.yml
    scp -i $home\.ssh\radar_ed25519 database/init/* radar-admin@<SERVER_IP>:/opt/radar/infra/database/init
+   scp -i $home\.ssh\radar_ed25519 database/maintenance/* radar-admin@<SERVER_IP>:/opt/radar/infra/database/maintenance
    scp -i $home\.ssh\radar_ed25519 envs/.env.prod radar-admin@<SERVER_IP>:/opt/radar/infra/envs
    scp -i $home\.ssh\radar_ed25519 scripts/* radar-admin@<SERVER_IP>:/opt/radar/infra/scripts
    scp -i $home\.ssh\radar_ed25519 systemd/* radar-admin@<SERVER_IP>:/opt/radar/infra
@@ -357,8 +359,10 @@ On the VM assign ownership and permissions to the copied files so the system fun
    # Copy the radar-core.service and radar-core.timer files to the systemd folder
    # mv: moves files or directories from one location to another
    sudo cp /opt/radar/infra/systemd/radar-core.{service,timer} /etc/systemd/system/
+   sudo cp /opt/radar/infra/systemd/radar-maintenance.{service,timer} /etc/systemd/system/
    # Set owner to root (security standard for system services)
    sudo chown root:root /etc/systemd/system/radar-core.{service,timer}
+   sudo chown root:root /etc/systemd/system/radar-maintenance.{service,timer}
    # Adjust permissions (read for all, write only root)
    # chmod: applies standard read/write permissions
    # 644 (rw-r--r--): owner (1*4.read + 1*2.write + 0*1.execute) = 6, group (1*4.read + 0*2.write + 0*1.execute) = 4, others (1*4.read + 0*2.write + 0*1.execute) = 4

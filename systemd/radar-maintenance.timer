@@ -1,0 +1,18 @@
+# systemd/radar-maintenance.timer
+
+# Schedule maintenance independently from the financial processing workload.
+[Unit]
+Description=Timer for Radar Daily VPS Maintenance
+
+[Timer]
+# Run at 00:30 in New York, before the existing 01:30 radar-core daily run.
+OnCalendar=*-*-* 00:30:00 America/New_York
+# Do not run missed maintenance immediately after a reboot; wait for the next scheduled window.
+Persistent=false
+# Keep the documented off-hours schedule precise while allowing normal systemd timer handling.
+AccuracySec=1min
+Unit=radar-maintenance.service
+
+[Install]
+# Start this timer automatically with the system timer target after installation.
+WantedBy=timers.target

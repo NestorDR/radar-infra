@@ -63,15 +63,19 @@ sudo chmod +x /opt/radar/infra/scripts/*.sh
 sudo chmod +x /opt/radar/infra/database/init/*.sh
 
 echo "[5/6] Deploying systemd units..."
-# Copy the radar-core.service and radar-core.timer files to the systemd folder
+# Copy the radar-core and radar-maintenance, .service and .timer files to the systemd folder
 # cp: copies files from one location to another
 sudo cp /opt/radar/infra/systemd/radar-core.{service,timer} /etc/systemd/system/
-# Set owner to root (security standard for system services)
+sudo cp /opt/radar/infra/systemd/radar-maintenance.{service,timer} /etc/systemd/system/
+# Set owner to root (security standard for system services) so unprivileged users cannot alter scheduled cleanup.
 sudo chown root:root /etc/systemd/system/radar-core.{service,timer}
+sudo chown root:root /etc/systemd/system/radar-maintenance.{service,timer}
 # Adjust permissions (read for everyone, write only root)
 # chmod: applies standard read/write permissions
 # 644 (rw-r--r--): owner (1*4.read + 1*2.write + 0*1.execute) = 6, group (1*4.read + 0*2.write + 0*1.execute) = 4, others (1*4.read + 0*2.write + 0*1.execute) = 4
-sudo chmod 644 /etc/systemd/system/radar-core.*
+sudo chmod 644 /etc/systemd/system/radar-core.{service,timer}
+# Make the maintenance unit definitions read-only for all users except root.
+sudo chmod 644 /etc/systemd/system/radar-maintenance.{service,timer}
 
 echo "[6/6] Reloading the systemd demon and enabling timer..."
 # Notify systemd of new files or changes
@@ -80,6 +84,10 @@ sudo systemctl daemon-reload
 sudo systemctl enable radar-core.timer
 # Start the timer immediately to schedule the radar-core service according to the defined schedule
 sudo systemctl start radar-core.timer
+# Enable the maintenance timer so it starts automatically after future boots without enabling catch-up execution.
+sudo systemctl enable radar-maintenance.timer
+# Start the maintenance timer now so its next 00:30 New York trigger is registered immediately.
+sudo systemctl start radar-maintenance.timer
 # Add user to the systemd-journal group to read system logs (journalctl) without using sudo
 sudo usermod -aG systemd-journal radar-admin
 
@@ -92,6 +100,8 @@ echo "--- Infrastructure Configuration Completed ---"
 # --ignore='data': excludes the 'data' directory from the listing to avoid cluttering the output with potentially large files
 ls -laR --ignore='data' /opt/radar/infra/
 ls -l /etc/systemd/system/radar-core.{service,timer}
+# Verify that the installed maintenance units retain root ownership and read-only unit-file permissions.
+ls -l /etc/systemd/system/radar-maintenance.{service,timer}
 echo ""
 
 # Check the status of the timer to ensure it's active and scheduled correctly
@@ -100,8 +110,11 @@ echo ""
 # --all: includes inactive timers in the output, providing a comprehensive view of all timers regardless of their current state
 # | grep radar: to filter the output to show only lines containing "radar" (if wanted to focus on the radar-core.timer)
 systemctl list-timers --all | grep radar-core || echo "radar-core.timer is not active."
+# Confirm that the independently scheduled maintenance timer is registered with systemd.
+systemctl list-timers --all | grep radar-maintenance || echo "radar-maintenance.timer is not active."
 
 # Check detailed status
 systemctl status radar-core.timer
+systemctl status radar-maintenance.timer
 
 echo "Tip: To apply the 'systemd-journal' permission, exit the server ('Ctrl + D') and re-enter via SSH."
