@@ -27,7 +27,7 @@ The repository is structured to separate code and configuration from ephemeral o
 - `docs/`: ADRs and infrastructure documentation.
 - `docker-compose.*.yml`: Environment-specific container definitions.
 - `scripts/`: Bash scripts (`.sh`) for automation on Linux servers (cleanup, configuration, execution, and validation).
-- `systemd/`: Service units and timers (`radar-core.service`, `radar-core.timer`) for orchestrating recurring executions. `radar-core.timer` runs daily at 01:30 New York time, plus Monday to Friday every 30 minutes from 09:31 through 16:31 and an additional run at 15:54.
+- `systemd/`: Service units and timers (`radar-core.service`, `radar-core.timer`, `radar-maintenance.service`, `radar-maintenance.timer`) for orchestrating recurring executions. `radar-core.timer` runs daily at 01:30 New York time, plus Monday to Friday every 30 minutes from 09:31 through 16:31 and an additional run at 15:54; `radar-maintenance.timer` runs daily at 00:30 without missed-run catch-up.
 - `terraform/`: Declarative Infrastructure as Code (IaC) for Hetzner Cloud DNS records management.
 - `Caddyfile`: Reverse proxy routing configuration using dynamic environment variables.
 
@@ -91,6 +91,56 @@ In production, application logs are not collected via Docker's internal mechanis
 ```shell
 sudo journalctl -u radar-core.service
 ```
+
+### Daily VPS Maintenance
+The host-side maintenance workflow is isolated from the persistent PostgreSQL, Metabase, and Caddy services. The installed `radar-maintenance.timer` starts `radar-maintenance.service` daily at **00:30 `America/New_York`**, after the existing 01:30 `radar-core` daily run. The timer uses `Persistent=false`, so a missed run is not started immediately after a reboot.
+
+The workflow runs these ordered phases:
+
+1. **Preflight:** verifies `/opt/radar/infra`, `envs/.env.prod`, the maintenance SQL file, Docker availability, and a running, healthy `radar-postgres` container. It also takes a non-blocking host lock so scheduled and manual executions cannot overlap.
+2. **Metabase cleanup:** executes `database/maintenance/metabase_truncate_tables.sql` inside `radar-postgres` as the configured `POSTGRES_USER`, with `ON_ERROR_STOP` and bounded lock/statement timeouts. The SQL is limited to Metabase history, task, audit, telemetry, and query-cache tables, then runs non-blocking `VACUUM (ANALYZE)`; it does not truncate dashboards, questions, users, or other application metadata.
+3. **Safe Docker pruning:** removes stopped containers, unused images, unused networks, and unused build cache through `scripts/docker_prune.sh`. The scheduled path never passes `--volumes`, so it does not delete PostgreSQL bind-mounted data or Caddy named volumes.
+4. **Host retention cleanup:** delegates temporary-file cleanup to `systemd-tmpfiles --clean` and removes only journald entries older than the documented 30-day retention limit with `journalctl --vacuum-time=30d`.
+
+The routine does **not** delete `database/data`, the Radar price cache, environment files, Metabase dashboards/questions/users, or Caddy state. It also does not create backups or run blocking `VACUUM FULL`. See the self-contained [Daily VPS Maintenance](docs/deployment/Daily_VPS_Maintenance.md) document for operation, recovery, and deployment checks.
+
+#### Manual operation and diagnosis
+Run the service manually only when the persistent stack is healthy and no maintenance run is already active:
+```bash
+# Start one guarded maintenance execution without changing the timer schedule.
+sudo systemctl start radar-maintenance.service
+# Show the most recent result and the current oneshot state without opening an interactive pager.
+sudo systemctl status radar-maintenance.service --no-pager
+# List the next scheduled maintenance trigger and confirm the timer is enabled.
+systemctl list-timers radar-maintenance.timer
+# Review maintenance phases, failures, lock conflicts, and retention output from journald.
+sudo journalctl -u radar-maintenance.service --since "24 hours ago" --no-pager
+```
+
+If a phase fails, the service remains failed and later phases are not attempted. Inspect the journal, confirm Docker and `radar-postgres` health, resolve the reported lock, disk, or permission issue, and rerun the service manually. A lock-timeout failure is safe to retry after active Metabase work finishes. Do not remove files or Docker volumes manually as a recovery step.
+
+#### Post-deployment verification
+After the deployment configuration script has installed the units, perform these read-only checks on the VPS:
+```bash
+# Confirm the timer is active and the next trigger is the documented 00:30 New York-time run.
+systemctl list-timers radar-maintenance.timer
+# Confirm PostgreSQL, Metabase, and Caddy remain running after installation.
+docker ps --filter name=radar-postgres --filter name=radar-metabase --filter name=radar-caddy
+# Confirm PostgreSQL is running and healthy without changing the container.
+docker inspect --format '{{.State.Running}} {{.State.Health.Status}}' radar-postgres
+# Confirm the PostgreSQL bind mount still points at the protected production data directory.
+docker inspect --format '{{range .Mounts}}{{println .Source "->" .Destination}}{{end}}' radar-postgres
+# Confirm Caddy still has both persistent named state volumes attached.
+docker inspect --format '{{range .Mounts}}{{println .Name "->" .Destination}}{{end}}' radar-caddy
+# Confirm filesystem and inode usage without deleting any data.
+df -h /opt/radar/infra/database/data
+df -i /opt/radar/infra/database/data
+# Confirm the maintenance service has no unexpected failure in its latest journal output.
+sudo journalctl -u radar-maintenance.service -n 200 --no-pager
+# Confirm Metabase remains reachable through the normal Caddy endpoint.
+curl --fail --silent --show-error --head https://radar.ndromero.com/
+```
+The expected result is an active timer, healthy `radar-postgres`, unchanged PostgreSQL and Caddy mounts, stable filesystem checks, no unexplained maintenance failure, and a successful Metabase endpoint response.
 
 ## Automation Scripts
 The repository contains scripts for both Windows and Linux to simplify common operational tasks and automate deployments:
