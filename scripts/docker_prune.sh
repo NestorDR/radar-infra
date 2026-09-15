@@ -1,9 +1,9 @@
 
 # 1. Check disk space usage
-df -h /opt/radar/infra/database/data
+df -h /opt/radar
 
 # 2. Check inode usage (if disk has free space, inodes might be 100% full)
-df -i /opt/radar/infra/database/data
+df -i /opt/radar
 
 # 3. Check Docker resource usage
 docker system df

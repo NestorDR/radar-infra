@@ -8,7 +8,7 @@ SELECT relname                                       AS table_name,
        pg_size_pretty(pg_indexes_size(relid))        AS index_size
 FROM pg_catalog.pg_statio_user_tables
 ORDER BY pg_total_relation_size(relid) DESC
-LIMIT 20;
+LIMIT 30;
 
 
 
@@ -30,26 +30,26 @@ TRUNCATE TABLE
     query_cache, -- Cached results for heavy queries
     query, -- Query execution time averages
 
--- 2.2. Background Tasks and Synchronizations
+    -- 2.2. Background Tasks and Synchronizations
     task_history, -- Detailed background task execution steps
     task_run, -- High-level background task scheduler runs
 
--- 2.3. Audit, Login History, and Telemetry
+    -- 2.3. Audit, Login History, and Telemetry
     view_log, -- Card and dashboard view audit records
     login_history, -- Login attempts, timestamps, and IP addresses
     audit_log, -- General activity audit logs
     ai_usage_log, -- AI assistant (Metabot) usage and token telemetry
     semantic_search_token_tracking, -- Token tracking metrics for semantic search
     support_access_grant_log
--- Temporary support access grant logs
+    -- Temporary support access grant logs
 
--- =========================================================================
--- OPTIONAL (Uncomment by removing '--' if a deeper cleanup is desired)
--- =========================================================================
--- , recent_views                 -- Clears users' "Recently viewed" lists
--- , metabot_conversation         -- Clears AI chat conversation history
--- , metabot_message              -- Individual messages from AI chat threads
--- , core_session                 -- Terminates all currently active user sessions
+    -- =========================================================================
+    -- OPTIONAL (Uncomment by removing '--' if a deeper cleanup is desired)
+    -- =========================================================================
+    -- , recent_views                 -- Clears users' "Recently viewed" lists
+    -- , metabot_conversation         -- Clears AI chat conversation history
+    -- , metabot_message              -- Individual messages from AI chat threads
+    -- , core_session                 -- Terminates all currently active user sessions
 ;
 
 COMMIT;
