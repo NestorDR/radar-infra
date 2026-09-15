@@ -1,4 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+# scripts/radar_maintenance.sh
+# Purpose: Coordinate guarded daily production maintenance, including Metabase cleanup, Docker pruning, temporary-file cleanup, journald retention, and filesystem diagnostics.
+# Usage: ./radar_maintenance.sh
 
 # Coordinate the guarded daily maintenance workflow from the production host.
 set -Eeuo pipefail

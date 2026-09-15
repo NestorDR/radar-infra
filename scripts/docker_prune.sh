@@ -1,3 +1,8 @@
+#!/bin/bash
+
+# scripts/docker_prune.sh
+# Purpose: Inspect Docker resource usage and remove unused containers, images, networks, and build cache.
+# Usage: ./docker_prune.sh
 
 # 1. Check disk space usage
 df -h /opt/radar
@@ -19,3 +24,6 @@ docker network prune -f
 
 # 7. Remove unused build cache without including persistent Docker volumes in the cleanup scope.
 docker builder prune -a -f
+
+# 8. Re-check Docker resource usage
+docker system df
