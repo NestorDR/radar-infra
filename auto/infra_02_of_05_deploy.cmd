@@ -11,7 +11,7 @@
 :: radar-admin@%RadarIPAddress%: The destination (who and where).
 :: :/opt/radar/infra: Absolute path on the server where the files will be copied
 scp -i %USERPROFILE%\.ssh\radar_ed25519 docker-compose.prod.yml radar-admin@%RadarIPAddress%:/opt/radar/infra
-scp -i %USERPROFILE%\.ssh\radar_ed25519 ../radar-core/src/radar_core/settings.dev.yml radar-admin@%RadarIPAddress%:/opt/radar/infra/config/settings.yml
+scp -i %USERPROFILE%\.ssh\radar_ed25519 ../radar-core/src/radar_core/settings.yml radar-admin@%RadarIPAddress%:/opt/radar/infra/config/settings.yml
 scp -i %USERPROFILE%\.ssh\radar_ed25519 database/init/* radar-admin@%RadarIPAddress%:/opt/radar/infra/database/init
 scp -i %USERPROFILE%\.ssh\radar_ed25519 database/maintenance/* radar-admin@%RadarIPAddress%:/opt/radar/infra/database/maintenance
 scp -i %USERPROFILE%\.ssh\radar_ed25519 envs/.env.prod radar-admin@%RadarIPAddress%:/opt/radar/infra/envs
