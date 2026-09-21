@@ -7,9 +7,14 @@ CREATE ROLE agent_mcp WITH LOGIN PASSWORD 'set_a_very_strong_password';
 GRANT CONNECT ON DATABASE radar TO agent_mcp;
 GRANT USAGE ON SCHEMA public TO agent_mcp;
 
--- 3. Grant read-only permissions on current and future tables
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO agent_mcp;  -- current
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO agent_mcp;  -- futures
+-- 3. Grant read-only permissions on tables
+-- Read-only permissions on current tables
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO agent_mcp;
+-- Read-only permissions on future tables created by the role executing the command (e.g., radar_admin)
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO agent_mcp;
+-- Also, you need one command per role that creates database objects (e.g., postgres, radar_admin, etc.) to ensure that
+--  future tables created by those roles are also readable by agent_mcp
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO agent_mcp;
 
 -- 4. Defense-in-depth restrictions: revoke mutation rights
 REVOKE CREATE ON SCHEMA public FROM agent_mcp;

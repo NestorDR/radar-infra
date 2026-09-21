@@ -61,7 +61,8 @@ INSERT INTO public.strategies (id, name, acronym, pool, unit_label)
 VALUES (1, 'Simple Moving Average', 'SMA', 'MA', '$'),
        (2, 'Roller Coaster over RSI(14)', 'RSI(14) RC', 'RSI', ''),
        (3, 'Simple Moving Average over RSI(14)', 'RSI(14) SMA', 'RSI', ''),
-       (4, 'Two Bands over RSI(14)', 'RSI(14) 2B', 'RSI', '');
+       (4, 'Two Bands over RSI(14)', 'RSI(14) 2B', 'RSI', ''),
+       (5, 'CMB Composite Index', 'CMB', 'CMB', '');
 
 SELECT setval('public.strategies_id_seq', COALESCE(MAX(id), 0) + 1, false)
 FROM public.strategies;
