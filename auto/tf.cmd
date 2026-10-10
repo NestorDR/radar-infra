@@ -2,50 +2,60 @@
 :: Purpose: Orchestrate and automate the Terraform lifecycle commands (init, plan, apply, destroy)
 :: Usage: auto/tf <command>
 :: Example: auto/tf init
-@ECHO OFF
-CLS
 
-SETLOCAL ENABLEDELAYEDEXPANSION
-ECHO !DATE! !TIME!
+@echo off
+cls
 
-:: Capture the script's origin directory to ensure backward navigation after executing Terraform commands
-SET SCRIPT_DIR=%~dp0
+setlocal enabledelayedexpansion
+set "_EXIT_CODE=0"
+echo !DATE! !TIME!
+
+:: Require invocation from this repository's root directory.
+for %%I in ("%~dp0..") do set "PROJECT_ROOT=%%~fI"
+for %%I in ("%CD%") do set "CURRENT_DIR=%%~fI"
+if /i not "!CURRENT_DIR!"=="!PROJECT_ROOT!" (
+    echo Error: Run this script from the project root: "!PROJECT_ROOT!"
+    set "_EXIT_CODE=1"
+    goto end
+)
+
 :: Navigate to the target terraform directory relative to the script location
-CD /D "!SCRIPT_DIR!..!\terraform"
+cd /d "!PROJECT_ROOT!\terraform"
 
 :: Capture the target action command (init, plan, apply, etc.)
-SET TF_COMMAND=%1
+set TF_COMMAND=%1
 if "!TF_COMMAND!"=="" (
-    ECHO Error: Action parameter is required.
-    ECHO Usage: %0 ^<command^>
-    ECHO Valid values: init, plan, apply, destroy
-    ECHO Example: %0 init
-    CD /D "!SCRIPT_DIR!..!"
-    EXIT /B 1
+    echo Error: Action parameter is required.
+    echo Usage: %0 ^<command^>
+    echo Valid values: init, plan, apply, destroy
+    echo Example: %0 init
+    cd /d "!PROJECT_ROOT!"
+    set "_EXIT_CODE=1"
+    goto end
 )
 
 :: Validate and execute the specific action
 if /i "!TF_COMMAND!"=="init" (
-    ECHO [INFO] Initializing Terraform working directory...
+    echo [INFO] Initializing Terraform working directory...
     terraform init
-    GOTO end
+    goto command_result
 )
 
 :: Upgrade Terraform plugins and modules to the latest compatible versions
 if /i "!TF_COMMAND!"=="upgrade" (
-    ECHO [INFO] Updating Terraform working directory...
+    echo [INFO] Updating Terraform working directory...
     terraform init -upgrade
-    GOTO end
+    goto command_result
 )
 
 if /i "!TF_COMMAND!"=="plan" (
-    ECHO [INFO] Generating and showing execution plan...
+    echo [INFO] Generating and showing execution plan...
     terraform plan -out=tfplan
-    GOTO end
+    goto command_result
 )
 
 if /i "!TF_COMMAND!"=="apply" (
-    ECHO [INFO] Building or changing infrastructure state...
+    echo [INFO] Building or changing infrastructure state...
     :: If tfplan file exists, apply it directly without interactive prompt.
     :: Otherwise, run standard apply which asks for interactive confirmation.
     if exist tfplan (
@@ -53,30 +63,35 @@ if /i "!TF_COMMAND!"=="apply" (
     ) else (
         terraform apply
     )
-    GOTO end
+    goto command_result
 )
 
 if /i "!TF_COMMAND!"=="destroy" (
-    ECHO [WARNING] Wiping all resources managed by this configuration...
+    echo [WARNING] Wiping all resources managed by this configuration...
     terraform destroy
-    GOTO end
+    goto command_result
 )
 
-ECHO Error: Invalid command "!TF_COMMAND!". Supported commands are: init, plan, apply, destroy.
-EXIT /B 1
+:: Invalid command
+ echo Error: Invalid command "!TF_COMMAND!". Supported commands are: init, upgrade, plan, apply, destroy.
+set "_EXIT_CODE=1"
+goto go_project_root
+
+:command_result
+:: Preserve the Terraform command's result before other commands change ERRORLEVEL.
+set "_EXIT_CODE=!errorlevel!"
+
+if !_EXIT_CODE! neq 0 (
+    echo [ERROR] Terraform !TF_COMMAND! failed with exit code !_EXIT_CODE!.
+) else (
+    echo [SUCCESS] Terraform !TF_COMMAND! completed successfully.
+)
+echo !DATE! !TIME!
+
+:go_project_root
+:: Navigate back to the project root directory
+cd /d "!PROJECT_ROOT!"
 
 :end
-:: Capture execution status
-SET EXIT_CODE=!errorlevel!
-
-:: Navigate back to the project root directory
-CD /D "!SCRIPT_DIR!..!"
-
-if !EXIT_CODE! neq 0 (
-    ECHO [ERROR] Terraform !TF_COMMAND! failed with exit code !EXIT_CODE!.
-    EXIT /B !EXIT_CODE!
-)
-
-ECHO [SUCCESS] Terraform !TF_COMMAND! completed successfully.
-ECHO !DATE! !TIME!
-ENDLOCAL
+:: Restore the original environment variables and exit with the resulting exit code
+endlocal & exit /b %_EXIT_CODE%

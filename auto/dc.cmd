@@ -1,39 +1,57 @@
 :: auto/dc.cmd
 :: Purpose: Start the Docker Compose environment for a specific deployment environment: dev, e2e
-:: Usage: auto/dc <target_deploy>
-@ECHO OFF
-CLS
+:: Usage: auto/dc <dev|e2e> (run from the project root directory)
+@echo off
+cls
 
+:: setlocal preserves the original environment variables; endlocal restores them before exit
 :: Enable `delayed expansion` to handle environment variables correctly within blocks
-SETLOCAL ENABLEDELAYEDEXPANSION
-ECHO !DATE! !TIME!
+setlocal ENABLEDELAYEDEXPANSION
+set "_EXIT_CODE=0"
+echo !DATE! !TIME!
 
-:: Get the directory where the script is located
-SET SCRIPT_DIR=%~dp0
-:: Ensure we are executing from the project root (one level up from /auto)
-CD /D "!SCRIPT_DIR!..!"
+:: Require invocation from this repository's root directory.
+for %%I in ("%~dp0..") do set "PROJECT_ROOT=%%~fI"
+for %%I in ("%CD%") do set "CURRENT_DIR=%%~fI"
+if /i not "!CURRENT_DIR!"=="!PROJECT_ROOT!" (
+    echo Error: Run this script from the project root: "!PROJECT_ROOT!"
+    set "_EXIT_CODE=1"
+    goto end
+)
 
 :: Capture 1st argument as target deployment environment
-SET TARGET_DEPLOY=%1
+set TARGET_DEPLOY=%1
 if "!TARGET_DEPLOY!"=="" (
     ECHO Parameter is required. Usage: %0 ^<target_deploy^>
     ECHO Valid values for target_deploy: dev, e2e
     ECHO Example: %0 dev
-    exit /b
+    set "_EXIT_CODE=2"
+    goto end
 )
 
 :: Since `docker compose` is case-sensitive, force `TARGET_DEPLOY` to lowercase to match the
 :: `docker-compose.*.yml` and `.env.*` filenames, ensuring consistent resolution regardless of user input casing.
 :: /i : Case-insensitive comparison
 if /i "!TARGET_DEPLOY!"=="dev" (
-    SET TARGET_DEPLOY=
-    SET TARGET_DEPLOY=dev
+    set TARGET_DEPLOY=
+    set "TARGET_DEPLOY=dev"
+) else if /i "!TARGET_DEPLOY!"=="e2e" (
+    set TARGET_DEPLOY=
+    set "TARGET_DEPLOY=e2e"
+) else (
+    echo Invalid target. Valid values are: dev, e2e.
+    set "_EXIT_CODE=2"
+    goto end
 )
-if /i "!TARGET_DEPLOY!"=="e2e" (
-    SET TARGET_DEPLOY=
-    SET TARGET_DEPLOY=e2e
+
+:: This wrapper accepts one target only; reject additional arguments for now.
+if not "%2"=="" (
+    echo Unexpected extra argument. Usage: %0 ^<dev^|e2e^>
+    set "_EXIT_CODE=2"
+    goto end
 )
-ECHO Do you want to delete the subfolder database\docker_volume and all its contents?
+
+echo Do you want to delete the subfolder database\docker_volume and all its contents?
 CHOICE /C YN /M "Press Y for YES or N for NO"
 IF !errorlevel! equ 1 (
     ECHO Deleting database\docker_volume and its contents...
@@ -65,16 +83,25 @@ IF !errorlevel! equ 1 (
 :: --build ........: reconstructs images if it detects changes in the build context or the Dockerfile
 :: --force-recreate: ensures that containers are created again (stops and removes existing containers and creates new ones)
 :: %* .............: for extra arguments
-docker compose --env-file envs/.env.!TARGET_DEPLOY! -f docker-compose.!TARGET_DEPLOY!.yml -p radar-!TARGET_DEPLOY! up -d --build
+docker compose --env-file envs/.env.!TARGET_DEPLOY! -f docker-compose.!TARGET_DEPLOY!.yml -p radar-!TARGET_DEPLOY! up -d --build || goto command_failed
 
 :: Check if the command was successful
 IF !errorlevel! neq 0 (
     ECHO [ERROR] Docker Compose for !TARGET_DEPLOY! Environment failed to start.
-    EXIT /b !errorlevel!
+    set "_EXIT_CODE=!errorlevel!"
+    goto end
 )
 
 ECHO [SUCCESS] !TARGET_DEPLOY! Environment is up.
 ECHO Access Metabase at http://localhost:3000
 ECHO !DATE! !TIME!
 
-ENDLOCAL
+goto end
+
+:command_failed
+set "_EXIT_CODE=%ERRORLEVEL%"
+echo [ERROR] Docker Compose for !TARGET_DEPLOY! Environment failed to start.
+
+:end
+:: Restore the original environment variables and exit with the resulting exit code
+endlocal & exit /b %_EXIT_CODE%
