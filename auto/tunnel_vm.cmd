@@ -3,21 +3,6 @@
 ::  the local port 5433/3001 on your PC to avoid conflicts with if you have a local services running on those ports.
 
 cls
-@echo off
-
-:: In PowerShell: $Home replaces %USERPROFILE% and ` replaces ^
-
-if not defined RadarIPAddress (
-    echo Error: RadarIPAddress is not set.
-    exit /b 1
-)
-
-if not exist "%USERPROFILE%\.ssh\radar_ed25519" (
-    echo Error: SSH identity file was not found: "%USERPROFILE%\.ssh\radar_ed25519"
-    exit /b 1
-)
-
-echo on
 
 :: ssh (secure shell): Tool for securely connecting to a remote server and executing commands
 :: -i: identity file
